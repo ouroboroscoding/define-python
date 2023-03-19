@@ -13,7 +13,7 @@ __created__		= "2023-03-18"
 from tools import clone, combine
 
 # Local imports
-from .base import Base
+from .base import Base, NOT_SET
 from .node import Node
 from . import constants
 
@@ -27,7 +27,7 @@ class Hash(Base):
 		Base
 	"""
 
-	def __init__(self, details: dict, extend: dict = None):
+	def __init__(self, details: dict, extend: dict = NOT_SET):
 		"""Constructor
 
 		Initialises the instance
@@ -47,11 +47,8 @@ class Hash(Base):
 		# Init the details
 		dDetails: dict = None
 
-		# Init the details
-		dDetails: dict = None
-
 		# If we have no extend at all
-		if extend is None:
+		if extend is NOT_SET:
 
 			# Make a copy of the details so we don't screw up the original
 			#	object
@@ -111,7 +108,7 @@ class Hash(Base):
 		"""
 		return self._node
 
-	def clean(self, value: dict | None, level: list = []):
+	def clean(self, value: dict | None, level: list = NOT_SET):
 		"""Clean
 
 		Makes sure both the key and value are properly stored in their correct
@@ -126,6 +123,10 @@ class Hash(Base):
 		Returns:
 			any | None
 		"""
+
+		# If the level is not set
+		if level is NOT_SET:
+			level = []
 
 		# If the value is None
 		if value is None:
@@ -188,7 +189,7 @@ class Hash(Base):
 		# Return
 		return dRet
 
-	def valid(self, value: dict | None, level: list = []):
+	def valid(self, value: dict | None, level: list = NOT_SET):
 		"""Valid
 
 		Checks if a value is valid based on the instance's values. If any errors
@@ -200,6 +201,10 @@ class Hash(Base):
 		Returns:
 			bool
 		"""
+
+		# If the level is not set
+		if level is NOT_SET:
+			level = []
 
 		# Reset validation failures
 		self._validation_failures = []

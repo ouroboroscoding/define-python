@@ -20,6 +20,9 @@ import jsonb
 # Local imports
 from . import constants
 
+NOT_SET = []
+"""Used as a unique constant for params not set"""
+
 class Base(abc.ABC):
 	"""Base
 
@@ -76,7 +79,11 @@ class Base(abc.ABC):
 		self.__special = {}
 
 		# If there are any other special fields in the details
-		for k in (tuple(details.keys())):
+		for k in details.keys():
+
+			# If the key is used by the child
+			if k in constants.special.reserved:
+				continue
 
 			# If key is special
 			oMatch = constants.special.key.match(k)

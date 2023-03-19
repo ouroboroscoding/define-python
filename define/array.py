@@ -13,7 +13,7 @@ __created__		= "2023-03-18"
 from tools import clone, combine
 
 # Local imports
-from .base import Base
+from .base import Base, NOT_SET
 from . import constants
 
 class Array(Base):
@@ -30,7 +30,7 @@ class Array(Base):
 
 	Holds a list of valid values used to represent arrays types"""
 
-	def __init__(self, details: dict, extend: dict = None):
+	def __init__(self, details: dict, extend: dict = NOT_SET):
 		"""Constructor
 
 		Initialises the instance
@@ -51,7 +51,7 @@ class Array(Base):
 		dDetails: dict = None
 
 		# If we have no extend at all
-		if extend is None:
+		if extend is NOT_SET:
 
 			# Make a copy of the details so we don't screw up the original
 			#	object
@@ -75,7 +75,7 @@ class Array(Base):
 
 			# Else, we got some sort of invalid value for extend
 			else:
-				raise ValueError('extend must be a dict or False')
+				raise ValueError('if set, extend must be a dict or False')
 
 		# If the array config is not found
 		if '__array__' not in dDetails:
@@ -131,7 +131,7 @@ class Array(Base):
 		"""
 		return self._node
 
-	def clean(self, value: list | None, level: list = []):
+	def clean(self, value: list | None, level: list = NOT_SET):
 		"""Clean
 
 		Goes through each of the values in the list, cleans it, stores it, and
@@ -143,6 +143,10 @@ class Array(Base):
 		Returns:
 			list | None
 		"""
+
+		# If the level is not set
+		if level is NOT_SET:
+			level = []
 
 		# If the value is None and it's optional, return as is
 		if value is None:
@@ -180,7 +184,7 @@ class Array(Base):
 		# Return the cleaned list
 		return lRet
 
-	def minmax(self, minimum: int = None, maximum: int = None):
+	def minmax(self, minimum: int = NOT_SET, maximum: int = NOT_SET):
 		"""Min/Max
 
 		Sets or gets the minimum and maximum number of items for the Array
@@ -197,7 +201,7 @@ class Array(Base):
 		"""
 
 		# If neither minimum or maximum is set, this is a getter
-		if minimum is None and maximum is None:
+		if minimum is NOT_SET and maximum is NOT_SET:
 			return {
 				'minimum': self._minimum,
 				'maximum': self._maximum
@@ -205,6 +209,10 @@ class Array(Base):
 
 		# If the minimum is set
 		if minimum is not None:
+
+			# If minimum wasn't passed
+			if minimum is NOT_SET:
+				raise ValueError('"minimum" can only be undefined if "maximum" is also undefined')
 
 			# If it's a string
 			if isinstance(minimum, str):
@@ -229,6 +237,10 @@ class Array(Base):
 
 		# If the maximum is set
 		if maximum is not None:
+
+			# If the maximum wasn't passed
+			if maximum is NOT_SET:
+				raise ValueError('"maximum" can only be undefined if "minimum" is also undefined')
 
 			# If it's a string
 			if isinstance(maximum, str):
@@ -298,7 +310,7 @@ class Array(Base):
 		# Return
 		return dRet
 
-	def type(self, type: str = None):
+	def type(self, type: str = NOT_SET):
 		"""Type
 
 		Getter/Setter for the type of array
@@ -307,21 +319,19 @@ class Array(Base):
 			str | None
 		"""
 
-		# If a type was passed, it's a setter
-		if type is not None:
-
-			# If the value is invalid
-			if type not in self._VALID_ARRAY:
-				raise ValueError('"%s" is not a valid type for __array__' % str(type))
-
-			# Store the new type
-			self._type = type
-
-		# Else, it's a getter
-		else:
+		# If type was not passed, it's a getter
+		if type is NOT_SET:
 			return self._type
 
-	def valid(self, value: list | None, level: list = []):
+		# Else, it's a setter
+		#	If the value is invalid
+		if type not in self._VALID_ARRAY:
+			raise ValueError('"%s" is not a valid type for __array__' % str(type))
+
+		# Store the new type
+		self._type = type
+
+	def valid(self, value: list | None, level: list = NOT_SET):
 		"""Valid
 
 		Checks if a value is valid based on the instance's values. If any errors
@@ -333,6 +343,10 @@ class Array(Base):
 		Returns:
 			bool
 		"""
+
+		# If the level was not set
+		if level is NOT_SET:
+			level = []
 
 		# Reset validation failures
 		self._validation_failures = []

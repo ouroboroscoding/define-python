@@ -14,12 +14,14 @@ from . import \
 	array, \
 	base, \
 	constants as _constants, \
-	hash
+	hash, \
+	node
 
 # Export the classes only
 Array = array.Array
 Base = base.Base
 Hash = hash.Hash
+Node = node.Node
 
 # Re-export the constants
 constants = _constants
