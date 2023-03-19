@@ -94,7 +94,10 @@ class Base(abc.ABC):
 		Returns:
 			str
 		"""
-		return str(self.to_dict())
+		return '<%s: %s>' % (
+			self.class_name(),
+			str(self.to_dict())
+		)
 
 	@property
 	def class_name(self):

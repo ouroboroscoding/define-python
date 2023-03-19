@@ -12,11 +12,14 @@ __created__		= "2023-03-18"
 # Python imports
 import re
 
+# PIP imports
+from python_dict_wrapper import wrap
+
 # Private values
 _special_syntax = r'[a-z0-9_-]+'
 
 # Export the values
-constants = {
+constants = wrap({
 	'array': ['unique', 'duplicates'],
 	'nodes': [
 		'any', 'base64', 'bool', 'date', 'datetime', 'decimal', 'float', 'int',
@@ -46,4 +49,4 @@ constants = {
 		'uuid':		'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$',
 		'uuid4':	'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}$'
 	}
-}
+})
