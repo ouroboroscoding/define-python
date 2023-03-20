@@ -9,8 +9,8 @@ __copyright__	= "Ouroboros Coding Inc."
 __email__		= "chris@ouroboroscoding.com"
 __created__		= "2023-03-18"
 
-# PIP imports
-from tools import clone, combine
+# Limit exports
+__all__ = ['Array']
 
 # Local imports
 from .base import Base, NOT_SET
@@ -37,45 +37,18 @@ class Array(Base):
 
 		Arguments:
 			details (dict): Definition
-			extend (dict | False): Optional, a dictionary to merge with extended definitions
+			extend (dict | False): Optional, a dictionary to extend the
+									definition
+
+		Raises:
+			KeyError, ValueError
 
 		Returns
 			Array
 		"""
 
-		# If details is not a dict instance
-		if not isinstance(details, dict):
-			raise ValueError('details must be a dict')
-
-		# Init the details
-		dDetails: dict = None
-
-		# If we have no extend at all
-		if extend is NOT_SET:
-
-			# Make a copy of the details so we don't screw up the original
-			#	object
-			dDetails = clone(details)
-
-		# Else, we have an extend value
-		else:
-
-			# If it's a dictionary
-			if isinstance(extend, dict):
-
-				# Store the details by making a new object from the details and
-				#	the extend
-				dDetails = combine(details, extend)
-
-			# Else, if it's false
-			elif extend == False:
-
-				# Just use the details as is, don't copy it
-				dDetails = details
-
-			# Else, we got some sort of invalid value for extend
-			else:
-				raise ValueError('if set, extend must be a dict or False')
+		# Generate the details
+		dDetails = Base.make_details(details, extend)
 
 		# If the array config is not found
 		if '__array__' not in dDetails:
@@ -218,7 +191,7 @@ class Array(Base):
 			if isinstance(minimum, str):
 
 				# If it's invalid
-				if not constants.regex.int.match(minimum):
+				if not constants.regex['int'].match(minimum):
 					raise ValueError('"minimum" of array must be an integer')
 
 				# Else, convert it to a number
@@ -246,7 +219,7 @@ class Array(Base):
 			if isinstance(maximum, str):
 
 				# If it's invalid
-				if not constants.regex.int.match(maximum):
+				if not constants.regex['int'].match(maximum):
 					raise ValueError('"maximum" of array must be an integer')
 
 				# Else, convert it to a number
@@ -359,11 +332,11 @@ class Array(Base):
 				return True
 
 			# Invalid value
-			self._validation_failures.append(('.'.join(level), 'missing'))
+			self._validation_failures.append(['.'.join(level), 'missing'])
 
 		# If the value isn't a list
 		if not isinstance(value, list):
-			self._validation_failures.append(('.'.join(level), 'not an array'))
+			self._validation_failures.append(['.'.join(level), 'not an array'])
 			return False
 
 		# Init the return, assume valid
@@ -396,7 +369,7 @@ class Array(Base):
 					iIndex = lItems.index(value[i])
 
 					# Add the error to the list
-					self._validation_failures.append(('.'.join(lLevel), 'duplicate of %s[%d]' % ('.'.join(level), iIndex)))
+					self._validation_failures.append(['.'.join(lLevel), 'duplicate of %s[%d]' % ('.'.join(level), iIndex)])
 					bRet = False
 					continue
 
@@ -410,7 +383,7 @@ class Array(Base):
 
 			# If we don't have enough
 			if len(value) < self._minimum:
-				self._validation_failures.append(('.'.join(level), 'did not meet minimum'))
+				self._validation_failures.append(['.'.join(level), 'did not meet minimum'])
 				bRet = False
 
 		# If there's a maximum
@@ -418,7 +391,7 @@ class Array(Base):
 
 			# If we have too many
 			if len(value) > self._maximum:
-				self._validation_failures.append(('.'.join(level), 'exceeds maximum'))
+				self._validation_failures.append(['.'.join(level), 'exceeds maximum'])
 				bRet = False
 
 		# Return whatever the result was

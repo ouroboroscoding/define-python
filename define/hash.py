@@ -9,8 +9,8 @@ __copyright__	= "Ouroboros Coding Inc."
 __email__		= "chris@ouroboroscoding.com"
 __created__		= "2023-03-18"
 
-# PIP imports
-from tools import clone, combine
+# Limit exports
+__all__ = ['Hash']
 
 # Local imports
 from .base import Base, NOT_SET
@@ -34,45 +34,18 @@ class Hash(Base):
 
 		Arguments:
 			details (dict): Definition
-			extend (dict | False): Optional, a dictionary to merge with extended definitions
+			extend (dict | False): Optional, a dictionary to extend the
+									definition
+
+		Raises:
+			KeyError, ValueError
 
 		Returns
-			Array
+			Hash
 		"""
 
-		# If details is not a dict instance
-		if not isinstance(details, dict):
-			raise ValueError('details must be a dict')
-
-		# Init the details
-		dDetails: dict = None
-
-		# If we have no extend at all
-		if extend is NOT_SET:
-
-			# Make a copy of the details so we don't screw up the original
-			#	object
-			dDetails = clone(details)
-
-		# Else, we have an extend value
-		else:
-
-			# If it's a dictionary
-			if isinstance(extend, dict):
-
-				# Store the details by making a new object from the details and
-				#	the extend
-				dDetails = combine(details, extend)
-
-			# Else, if it's false
-			elif extend == False:
-
-				# Just use the details as is, don't copy it
-				dDetails = details
-
-			# Else, we got some sort of invalid value for extend
-			else:
-				raise ValueError('extend must be a dict or False')
+		# Generate the details
+		dDetails = Base.make_details(details, extend)
 
 		# If the hash config is not found
 		if '__hash__' not in dDetails:
@@ -217,11 +190,11 @@ class Hash(Base):
 				return True
 
 			# Invalid value
-			self._validation_failures.append(('.'.join(level), 'missing'))
+			self._validation_failures.append(['.'.join(level), 'missing'])
 
 		# If the value isn't a dictionary
 		if not isinstance(value, dict):
-			self._validation_failures.append(('.'.join(level), 'not a valid object'))
+			self._validation_failures.append(['.'.join(level), 'not a valid object'])
 			return False
 
 		# Init the return, assume valid
@@ -236,7 +209,7 @@ class Hash(Base):
 
 			# If the key isn't valid
 			if not self._key.valid(k):
-				self._validation_failures.append(('.'.join(lLevel), 'invalid key: %s' % str(k)))
+				self._validation_failures.append(['.'.join(lLevel), 'invalid key: %s' % str(k)])
 				bRet = False
 				continue
 

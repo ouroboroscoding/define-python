@@ -157,7 +157,7 @@ class define_Test(unittest.TestCase):
 	def test_Hash_Hash_Valid(self):
 
 		# Create a hash of hashes
-		oHash = define.HashNode({
+		oHash = define.Hash({
 			"__hash__":"string",
 			"__type__":{
 				"__hash__":"string",
@@ -281,7 +281,7 @@ class define_Test(unittest.TestCase):
 		self.assertTrue(oNode.clean(3) == 3, '3 does not equal 3')
 		self.assertTrue(oNode.clean('3') == 3, '"3" does not equal 3')
 		self.assertTrue(oNode.clean('-3') == -3, '"-3" does not equal -3')
-		self.assertTrue(oNode.clean('076') == 62, "076 does not equal 62")
+		self.assertTrue(oNode.clean('0o76') == 62, "076 does not equal 62")
 		self.assertTrue(oNode.clean('0x3E') == 62, "0x3E does not equal 62")
 
 		# Create a basic ip Node
@@ -402,7 +402,7 @@ class define_Test(unittest.TestCase):
 		self.assertTrue(oNode.valid('1'), '"1" is not a valid any')
 		self.assertTrue(oNode.valid('-1'), '"-1" is not a valid any')
 		self.assertTrue(oNode.valid('0xff'), '"0xff" is not a valid any')
-		self.assertTrue(oNode.valid('07'), '"07" is not a valid any')
+		self.assertTrue(oNode.valid('0o7'), '"0o7" is not a valid any')
 		self.assertTrue(oNode.valid('Hello'), '"Hello" is not a valid any')
 		self.assertTrue(oNode.valid(True), 'True is not a valid any')
 		self.assertTrue(oNode.valid(0.1), '0.1 is not a valid any')
@@ -591,7 +591,7 @@ class define_Test(unittest.TestCase):
 		self.assertTrue(oNode.valid('1'), '"1" is not a valid int')
 		self.assertTrue(oNode.valid('-1'), '"-1" is not a valid int')
 		self.assertTrue(oNode.valid('0xff'), '"0xff" is not a valid int')
-		self.assertTrue(oNode.valid('07'), '"07" is not a valid int')
+		self.assertTrue(oNode.valid('0o7'), '"0o7" is not a valid int')
 
 		# Check for False
 		self.assertFalse(oNode.valid('Hello'), '"Hello" is a valid int')
@@ -1221,7 +1221,7 @@ class define_Test(unittest.TestCase):
 
 	def test_Option_Clean(self):
 
-		oOption	= define.OptionsNode([
+		oOption	= define.Options([
 			{"__type__":"uint"},
 			{"__type__":"string","__options__":["hello", "there"]}
 		])
@@ -1240,7 +1240,7 @@ class define_Test(unittest.TestCase):
 			{"__type__":"string","__options__":["hello", "there"]}
 		]
 
-		oOption	= define.OptionsNode([
+		oOption	= define.Options([
 			{"__type__":"uint"},
 			{"__type__":"string","__options__":["hello", "there"]}
 		])
@@ -1254,15 +1254,15 @@ class define_Test(unittest.TestCase):
 
 		iTest = 0
 		for d in oOption:
-			self.assertTrue(d.toDict() == l[iTest], 'structure doesn\'t match')
+			self.assertTrue(d.to_dict() == l[iTest], 'structure doesn\'t match')
 			iTest += 1
 
-		self.assertTrue(oOption[0].toDict() == {"__type__":"uint"}, 'structure doesn\'t match')
-		self.assertTrue(oOption[1].toDict() == {"__type__":"string","__options__":["hello", "there"]}, 'structure doesn\'t match')
+		self.assertTrue(oOption[0].to_dict() == {"__type__":"uint"}, 'structure doesn\'t match')
+		self.assertTrue(oOption[1].to_dict() == {"__type__":"string","__options__":["hello", "there"]}, 'structure doesn\'t match')
 
 	def test_Option_Valid(self):
 
-		oOption	= define.OptionsNode([
+		oOption	= define.Options([
 			{"__type__":"uint"},
 			{"__type__":"string","__options__":["hello", "there"]}
 		])
@@ -1281,15 +1281,15 @@ class define_Test(unittest.TestCase):
 		self.assertFalse(oOption.valid('something'), '"something" is a valid option')
 		self.assertFalse(oOption.valid('else'), '"else" is a valid option')
 
-	def test_Tree_toJSON(self):
+	def test_Tree_to_json(self):
 
 		o	= define.Tree({"__name__":"hello","field1":{"__type__":"uint"},"field2":{"field2_1":{"__type__":"string","__regex__":"^\\S+$"},"field2_2":{"__type__":"uint","__options__":[0,1,2,34]}},"field3":{"__array__":"unique","__type__":"decimal"},"field4":{"__array__":"duplicates","__ui__":{"ui":"information"},"field4_1":{"__type__":"md5"},"field4_2":{"field4_2_1":{"__type__":"date","__mysql__":"MySQL information"}}}})
 
 		# It is next to impossible to compare JSON output between python2 and
 		#	python3, so instead generate dicts from the JSON and compare those
-		d1 = json.loads(o.toJSON())
+		d1 = json.loads(o.to_json())
 		d2 = json.loads('{"field2": {"field2_2": {"__options__": [0, 1, 2, 34], "__type__": "uint"}, "field2_1": {"__regex__": "^\\\\S+$", "__type__": "string"}}, "__name__": "hello", "field1": {"__type__": "uint"}, "field4": {"__ui__": {"ui": "information"}, "field4_1": {"__type__": "md5"}, "__array__": "duplicates", "field4_2": {"field4_2_1": {"__type__": "date", "__mysql__": "MySQL information"}}}, "field3": {"__type__": "decimal", "__array__": "unique"}}')
-		self.assertTrue(d1 == d2, 'toJSON failed: %s' % o.toJSON())
+		self.assertTrue(d1 == d2, 'to_json failed: %s' % o.to_json())
 
 	def test_Tree_Valid(self):
 
@@ -1348,13 +1348,13 @@ class define_Test(unittest.TestCase):
 
 	def test_Hash_Clean(self):
 
-		o = define.HashNode({"__type__":"price", "__hash__":{"__type__":"string", "__regex__":"^\\\d+$"}})
+		o = define.Hash({"__type__":"price", "__hash__":{"__type__":"string", "__regex__":"^\\\d+$"}})
 
 		self.assertTrue(o.clean({"12345":99.99,"54321":66.66,"98765":"123"}) == {"12345":"99.99","54321":"66.66","98765":"123.00"}, "hash isn't cleaned")
 
 	def test_Hash_Valid(self):
 
-		o = define.HashNode({"__type__":"price", "__hash__":"uuid"})
+		o = define.Hash({"__type__":"price", "__hash__":"uuid"})
 
 		self.assertTrue(o.valid({
 			"52cd4b20-ca32-4433-9516-0c8684ec57c2" : 99.99,

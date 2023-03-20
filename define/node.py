@@ -9,6 +9,9 @@ __copyright__	= "Ouroboros Coding Inc."
 __email__		= "chris@ouroboroscoding.com"
 __created__		= "2023-03-19"
 
+# Limit exports
+__all__ = ['Node']
+
 # Python imports
 from datetime import date, datetime, time
 from decimal import Decimal, InvalidOperation as DecimalInvalid
@@ -17,7 +20,7 @@ import re
 
 # PIP imports
 import jsonb
-from tools import clone, combine
+from tools import combine
 
 # Local imports
 from .base import Base, NOT_SET
@@ -25,7 +28,7 @@ from . import constants
 
 # There is no way to access the real type of compiled regular expressions or md5
 #	hashes so unfortunately we have to do this ugly hack
-_REGEX_TYPE	= type(constants.regex.date)
+_REGEX_TYPE	= type(constants.regex['date'])
 _MD5_TYPE = type(hashlib.md5(b'hack'))
 
 class Node(Base):
@@ -51,10 +54,14 @@ class Node(Base):
 
 		Arguments:
 			details (dict | str): Definition, or type string
-			extend (dict | False): Optional, a dictionary to merge with extended definitions
+			extend (dict | False): Optional, a dictionary to extend the
+									definition
 
-		Returns
-			Array
+		Raises:
+			KeyError, ValueError
+
+		Returns:
+			Node
 		"""
 
 		# Init the details
@@ -88,32 +95,8 @@ class Node(Base):
 		# Else, if we got a dict
 		elif isinstance(details, dict):
 
-			# If we got no extend
-			if extend is NOT_SET:
-
-				# Make a copy of the details so we don't screw up the original
-				#	dict
-				dDetails = clone(details)
-
-			# Else, we have an extend value
-			else:
-
-				# If it's a dictionary
-				if isinstance(extend, dict):
-
-					# Store the details by making a new object from the details
-					#	and the extend
-					dDetails = combine(details, extend)
-
-				# Else, if it's False
-				elif details is False:
-
-					# Just use the details as is, don't copy it
-					dDetails = details
-
-				# Else, we got some sort of invalid value for extend
-				else:
-					raise ValueError('extend must be a dict or False')
+			# Generate the details
+			dDetails = Base.make_details(details, extend)
 
 		# Else, we got invalid details
 		else:
@@ -404,7 +387,7 @@ class Node(Base):
 
 					# If it's a valid representation of an integer, convert it
 					if isinstance(minimum, str) \
-						and constants.regex.int.match(minimum):
+						and constants.regex['int'].match(minimum):
 						minimum = int(minimum, 0)
 
 					# Else, raise an error
@@ -440,7 +423,7 @@ class Node(Base):
 			elif self._type == 'price':
 
 				# If it's not a valid representation of a price
-				if not isinstance(minimum, str) or not constants.regex.price.match(minimum):
+				if not isinstance(minimum, str) or not constants.regex['price'].match(minimum):
 					raise ValueError('"__minimum__" not a valid price')
 
 				# Store it as a Decimal
@@ -477,7 +460,7 @@ class Node(Base):
 
 					# If it's a valid representation of an integer
 					if isinstance(maximum, str) \
-						and constants.regex.int.match(maximum):
+						and constants.regex['int'].match(maximum):
 
 						# Convert it
 						maximum = int(maximum, 0)
@@ -532,7 +515,7 @@ class Node(Base):
 				if self._type == 'ip':
 
 					# If the min is above the max, we have a problem
-					if self.__compare_ips(self._minimum, maximum) == 1:
+					if self.compare_ips(self._minimum, maximum) == 1:
 						raise ValueError('"__maximum__" can not be below "__minimum__"')
 
 				# Else any other data type
@@ -638,7 +621,7 @@ class Node(Base):
 					pass
 
 				# Else if it's not a valid price representation
-				elif not isinstance(options[i], str) or not constants.regex.price.match(options[i]):
+				elif not isinstance(options[i], str) or not constants.regex['price'].match(options[i]):
 					raise ValueError('__options__[%d] is not a valid "price"' % i)
 
 				# Store it as a Decimal
@@ -694,8 +677,8 @@ class Node(Base):
 		if self._type != 'string':
 			raise ValueError('can not set __regex__ for "%s"' % self._type)
 
-		# If it's not a valid string or regex
-		if not isinstance(regex, str):
+		# If it's a string, compile it
+		if isinstance(regex, str):
 			self._regex = re.compile(regex)
 
 		# Else, if we got a Pattern
@@ -760,7 +743,8 @@ class Node(Base):
 	def valid(self, value: any, level: list = NOT_SET):
 		"""Valid
 
-		Checks if a value is valid based on the instance's values
+		Checks if a value is valid based on the instance's values. If any errors
+		occur, they can be found in [instance].validation_failures as a list
 
 		Arguments:
 			value {mixed} -- The value to validate
@@ -784,7 +768,7 @@ class Node(Base):
 				return True
 
 			# Invalid value
-			self._validation_failures.append(('.'.join(level), 'missing'))
+			self._validation_failures.append(['.'.join(level), 'missing'])
 
 		# If we are validating an ANY field, immediately return true
 		if self._type == 'any':
@@ -813,12 +797,12 @@ class Node(Base):
 
 			# If the value is not a string
 			elif not isinstance(value, str):
-				self._validation_failures.append(('.'.join(level), 'not a string'))
+				self._validation_failures.append(['.'.join(level), 'not a string'])
 				return False
 
 			# If there's no match
 			if not constants.regex[self._type].match(value):
-				self._validation_failures.append(('.'.join(level), 'invalid'))
+				self._validation_failures.append(['.'.join(level), 'invalid'])
 				return False
 
 			# If we are checking an IP
@@ -828,13 +812,13 @@ class Node(Base):
 				if self._minimum is not None or self._maximum is not None:
 
 					# If the IP is greater than the maximum
-					if self._maximum is not None and self.__compare_ips(value, self._maximum) == 1:
-						self._validation_failures.append(('.'.join(level), 'exceeds maximum'))
+					if self._maximum is not None and self.compare_ips(value, self._maximum) == 1:
+						self._validation_failures.append(['.'.join(level), 'exceeds maximum'])
 						return False
 
 					# If the IP is less than the minimum
-					if self._minimum is not None and self.__compare_ips(value, self._minimum) == -1:
-						self._validation_failures.append(('.'.join(level), 'did not meet minimum'))
+					if self._minimum is not None and self.compare_ips(value, self._minimum) == -1:
+						self._validation_failures.append(['.'.join(level), 'did not meet minimum'])
 						return False
 
 					# Return OK
@@ -845,7 +829,7 @@ class Node(Base):
 
 			# If the type is a bool, fail immediately
 			if type(value) == bool:
-				self._validation_failures.append(('.'.join(level), 'is a bool'))
+				self._validation_failures.append(['.'.join(level), 'is a bool'])
 				return False
 
 			# If it's not an int
@@ -858,7 +842,7 @@ class Node(Base):
 
 				# Else, return false
 				else:
-					self._validation_failures.append(('.'.join(level), 'not an integer'))
+					self._validation_failures.append(['.'.join(level), 'not an integer'])
 					return False
 
 			# If it's not signed
@@ -866,7 +850,7 @@ class Node(Base):
 
 				# If the value is below 0
 				if value < 0:
-					self._validation_failures.append(('.'.join(level), 'signed'))
+					self._validation_failures.append(['.'.join(level), 'signed'])
 					return False
 
 		# Else if we are validating a bool
@@ -887,12 +871,12 @@ class Node(Base):
 				if value in ['true', 'True', 'TRUE', 't', 'T', '1', 'false', 'False', 'FALSE', 'f', 'F', '0']:
 					return True
 				else:
-					self._validation_failures.append(('.'.join(level), 'not a valid string representation of a bool'))
+					self._validation_failures.append(['.'.join(level), 'not a valid string representation of a bool'])
 					return False
 
 			# Else it's no valid type
 			else:
-				self._validation_failures.append(('.'.join(level), 'not valid bool replacement'))
+				self._validation_failures.append(['.'.join(level), 'not valid bool replacement'])
 				return False
 
 		# Else if we are validating a decimal value
@@ -900,7 +884,7 @@ class Node(Base):
 
 			# If the type is a bool, fail immediately
 			if type(value) == bool:
-				self._validation_failures.append(('.'.join(level), 'is a bool'))
+				self._validation_failures.append(['.'.join(level), 'is a bool'])
 				return False
 
 			# If it's already a Decimal
@@ -911,7 +895,7 @@ class Node(Base):
 			else:
 				try: value = Decimal(value)
 				except (DecimalInvalid, TypeError, ValueError):
-					self._validation_failures.append(('.'.join(level), 'can not be converted to decimal'))
+					self._validation_failures.append(['.'.join(level), 'can not be converted to decimal'])
 					return False
 
 		# Else if we are validating a floating point value
@@ -919,7 +903,7 @@ class Node(Base):
 
 			# If the type is a bool, fail immediately
 			if type(value) == bool:
-				self._validation_failures.append(('.'.join(level), 'is a bool'))
+				self._validation_failures.append(['.'.join(level), 'is a bool'])
 				return False
 
 			# If it's already a float
@@ -930,7 +914,7 @@ class Node(Base):
 			else:
 				try: value = float(value)
 				except (ValueError, TypeError):
-					self._validation_failures.append(('.'.join(level), 'can not be converted to float'))
+					self._validation_failures.append(['.'.join(level), 'can not be converted to float'])
 					return False
 
 		# Else if we are validating a JSON string
@@ -944,7 +928,7 @@ class Node(Base):
 					value = jsonb.decode(value)
 					return True
 				except ValueError:
-					self._validation_failures.append(('.'.join(level), 'Can not be decoded from JSON'))
+					self._validation_failures.append(['.'.join(level), 'Can not be decoded from JSON'])
 					return False
 
 			# Else
@@ -955,7 +939,7 @@ class Node(Base):
 					value = jsonb.encode(value)
 					return True
 				except (ValueError, TypeError):
-					self._validation_failures.append(('.'.join(level), 'Can not be encoded to JSON'))
+					self._validation_failures.append(['.'.join(level), 'Can not be encoded to JSON'])
 					return False
 
 		# Else if we are validating a price value
@@ -963,7 +947,7 @@ class Node(Base):
 
 			# If the type is a bool, fail immediately
 			if type(value) == bool:
-				self._validation_failures.append(('.'.join(level), 'is a bool'))
+				self._validation_failures.append(['.'.join(level), 'is a bool'])
 				return False
 
 			# If it's not a floating point value
@@ -984,7 +968,7 @@ class Node(Base):
 
 				# Else whatever it is is no good
 				else:
-					self._validation_failures.append(('.'.join(level), 'invalid'))
+					self._validation_failures.append(['.'.join(level), 'invalid'])
 					return False
 
 			# Else
@@ -992,7 +976,7 @@ class Node(Base):
 
 				# If the exponent is longer than 2
 				if abs(value.as_tuple().exponent) > 2:
-					self._validation_failures.append(('.'.join(level), 'too many decimal points'))
+					self._validation_failures.append(['.'.join(level), 'too many decimal points'])
 					return False
 
 		# Else if we are validating a string value
@@ -1000,7 +984,7 @@ class Node(Base):
 
 			# If the value is not some form of string
 			if not isinstance(value, str):
-				self._validation_failures.append(('.'.join(level), 'is not a string'))
+				self._validation_failures.append(['.'.join(level), 'is not a string'])
 				return False
 
 			# If we have a regex
@@ -1008,7 +992,7 @@ class Node(Base):
 
 				# If it doesn't match the regex
 				if not self._regex.match(value):
-					self._validation_failures.append(('.'.join(level), 'invalid'))
+					self._validation_failures.append(['.'.join(level), 'invalid'])
 					return False
 
 			# Else
@@ -1016,12 +1000,12 @@ class Node(Base):
 
 				# If there's a minimum length and we don't reach it
 				if self._minimum and len(value) < self._minimum:
-					self._validation_failures.append(('.'.join(level), 'not long enough'))
+					self._validation_failures.append(['.'.join(level), 'not long enough'])
 					return False
 
 				# If there's a maximum length and we surpass it
 				if self._maximum and len(value) > self._maximum:
-					self._validation_failures.append(('.'.join(level), 'too long'))
+					self._validation_failures.append(['.'.join(level), 'too long'])
 					return False
 
 				# Return OK
@@ -1032,7 +1016,7 @@ class Node(Base):
 
 			# Returns based on the option's existance
 			if value not in self._options:
-				self._validation_failures.append(('.'.join(level), 'not in options'))
+				self._validation_failures.append(['.'.join(level), 'not in options'])
 				return False
 			else:
 				return True
@@ -1042,12 +1026,12 @@ class Node(Base):
 
 			# If the value is less than the minimum
 			if self._minimum and value < self._minimum:
-				self._validation_failures.append(('.'.join(level), 'did not meet minimum'))
+				self._validation_failures.append(['.'.join(level), 'did not meet minimum'])
 				return False
 
 			# If the value is greater than the maximum
 			if self._maximum and value > self._maximum:
-				self._validation_failures.append(('.'.join(level), 'exceeds maximum'))
+				self._validation_failures.append(['.'.join(level), 'exceeds maximum'])
 				return False
 
 		# Value has no issues

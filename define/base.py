@@ -9,6 +9,9 @@ __copyright__	= "Ouroboros Coding Inc."
 __email__		= "chris@ouroboroscoding.com"
 __created__		= "2023-03-18"
 
+# Limit exports
+__all__ = ['Base', 'NOT_SET']
+
 # Python imports
 import abc
 import copy
@@ -16,6 +19,7 @@ import sys
 
 # PIP imports
 import jsonb
+from tools import clone, combine
 
 # Local imports
 from . import constants
@@ -79,14 +83,14 @@ class Base(abc.ABC):
 		self.__special = {}
 
 		# If there are any other special fields in the details
-		for k in details.keys():
+		for k in tuple(details.keys()):
 
 			# If the key is used by the child
-			if k in constants.special.reserved:
+			if k in constants.special['reserved']:
 				continue
 
 			# If key is special
-			oMatch = constants.special.key.match(k)
+			oMatch = constants.special['key'].match(k)
 			if oMatch:
 
 				# Store it with the other specials then remove it
@@ -156,30 +160,30 @@ class Base(abc.ABC):
 
 			# If array is present
 			if '__array__' in details:
-				return cls.__classes.array(details, False)
+				return cls.__classes['array'](details, False)
 
 			# Else if we have a hash
 			elif '__hash__' in details:
-				return cls.__classes.hash(details, False);
+				return cls.__classes['hash'](details, False);
 
 			# Else if we have a type
 			elif '__type__' in details:
 
 				# If the type is an object or an array, this is a complex type
 				if isinstance(details['__type__'], dict) or isinstance(details['__type__'], list):
-					return cls.create(details.__type__)
+					return cls.create(details['__type__'])
 
 				# Else it's just a Node
 				else:
-					return cls.__classes.node(details, False);
+					return cls.__classes['node'](details, False)
 
 			# Else it's most likely a parent
 			else:
-				return cls.__classes.parent(details, False)
+				return cls.__classes['parent'](details, False)
 
 		# Else if we got a string, use the value as the type
 		elif isinstance(details, str):
-			return cls.__classes.node(details, False)
+			return cls.__classes['node'](details, False)
 
 		# Else, raise an error
 		else:
@@ -208,7 +212,58 @@ class Base(abc.ABC):
 		dDetails = jsonb.decodef(oFile)
 
 		# Create and return the new instance
-		return cls(dDetails)
+		return cls(dDetails, False)
+
+	@staticmethod
+	def make_details(details: dict, extend: dict):
+		"""Make Details
+
+		Common function for merging the `details` with `extend`
+
+		Arguments:
+			details (dict): Definition
+			extend (dict): A dictionary to extend the definition of `details`
+
+		Returns:
+			dict
+		"""
+
+		# If details is not a dict instance
+		if not isinstance(details, dict):
+			raise ValueError('details must be a dict')
+
+		# Init the return
+		dReturn: dict = None
+
+		# If we have no extend at all
+		if extend is NOT_SET:
+
+			# Make a copy of the details so we don't screw up the original
+			#	object
+			dReturn = clone(details)
+
+		# Else, we have an extend value
+		else:
+
+			# If it's a dictionary
+			if isinstance(extend, dict):
+
+				# Store the details by making a new object from the details and
+				#	the extend
+				dReturn = combine(details, extend)
+
+			# Else, if it's false
+			elif extend == False:
+
+				# Just use the details as is, don't copy it
+				dReturn = details
+
+			# Else, we got some sort of invalid value for extend
+			else:
+				raise ValueError('if set, extend must be a dict or False')
+
+		# Return whatever details were generated
+		return dReturn
 
 	def optional(self, value: bool | None = None):
 		"""Optional
@@ -282,8 +337,8 @@ class Base(abc.ABC):
 			raise TypeError('name must be a string')
 
 		# Check the name is valid
-		if not constants.special.name.match(name):
-			raise ValueError('special name must match "%s"' % constants.special.syntax)
+		if not constants.special['name'].match(name):
+			raise ValueError('special name must match "%s"' % constants.special['syntax'])
 
 		# If the value is not set, this is a getter
 		if value is None:

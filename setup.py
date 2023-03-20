@@ -23,7 +23,6 @@ setup(
 	python_requires='>=3.10',
 	install_requires=[
 		"jsonb>=1.0.0,<1.1",
-		"python-dict-wrapper==1.1.1",
 		"tools-oc>=1.0.0,<1.1"
 	],
 	test_suite='tests',
