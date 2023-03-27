@@ -13,7 +13,7 @@ __created__		= "2023-03-19"
 # Limit exports
 __all__ = ['Options']
 
-# PIP imports
+# Pip imports
 from tools import clone, merge
 
 # Local imports
@@ -74,7 +74,7 @@ class Options(Base):
 
 			# Make a copy of the details so we don't screw up the original
 			#	object
-			lDetails = clone(details)
+			lDetails = details[:]
 
 		# Else, we have an extend value
 		else:
@@ -130,7 +130,7 @@ class Options(Base):
 			elif isinstance(lDetails[i], (dict, list)):
 
 				# Store the child
-				self._nodes.append(Base.create(lDetails[i]))
+				self._nodes.append(self.create(lDetails[i]))
 
 			# Whatever was sent is invalid
 			else:
@@ -272,4 +272,4 @@ class Options(Base):
 		return False
 
 # Register with Base
-Base.register('options', Options)
+Options.register('options')

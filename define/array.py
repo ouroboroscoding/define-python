@@ -92,7 +92,7 @@ class Array(Base):
 		del dDetails['__array__']
 
 		# Create the child node
-		self._node = Base.create(dDetails)
+		self._node = self.create(dDetails)
 
 	def child(self):
 		"""Child
@@ -398,4 +398,4 @@ class Array(Base):
 		return bRet
 
 # Register with Base
-Base.register('array', Array)
+Array.register('array')

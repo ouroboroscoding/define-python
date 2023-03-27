@@ -96,7 +96,7 @@ class Parent(Base):
 
 				# Else, create it
 				else:
-					self._nodes[k] = Base.create(dDetails[k])
+					self._nodes[k] = self.create(dDetails[k])
 
 		# If there's a require hash available
 		if '__require__' in dDetails:
@@ -207,6 +207,17 @@ class Parent(Base):
 			list
 		"""
 		return tuple(self._nodes.keys())
+
+	@property
+	def nodes(self):
+		"""Nodes Property
+
+		Creates a read only attribute to access the instances child nodes
+
+		Returns:
+			dict
+		"""
+		return self._nodes
 
 	def requires(self, require = NOT_SET):
 		"""Requires
@@ -355,4 +366,4 @@ class Parent(Base):
 		return bRet
 
 # Register with Base
-Base.register('parent', Parent)
+Parent.register('parent')

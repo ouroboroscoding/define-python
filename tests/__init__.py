@@ -1283,12 +1283,12 @@ class define_Test(unittest.TestCase):
 
 	def test_Tree_to_json(self):
 
-		o	= define.Tree({"__name__":"hello","field1":{"__type__":"uint"},"field2":{"field2_1":{"__type__":"string","__regex__":"^\\S+$"},"field2_2":{"__type__":"uint","__options__":[0,1,2,34]}},"field3":{"__array__":"unique","__type__":"decimal"},"field4":{"__array__":"duplicates","__ui__":{"ui":"information"},"field4_1":{"__type__":"md5"},"field4_2":{"field4_2_1":{"__type__":"date","__mysql__":"MySQL information"}}}})
+		o = define.Tree({"__name__":"hello","field1":{"__type__":"uint"},"field2":{"field2_1":{"__type__":"string","__regex__":"^\\S+$"},"field2_2":{"__type__":"uint","__options__":[0,1,2,34]}},"field3":{"__array__":"unique","__type__":"decimal"},"field4":{"__array__":"duplicates","__ui__":{"ui":"information"},"field4_1":{"__type__":"md5"},"field4_2":{"field4_2_1":{"__type__":"date","__mysql__":"MySQL information"}}}})
 
 		# It is next to impossible to compare JSON output between python2 and
 		#	python3, so instead generate dicts from the JSON and compare those
 		d1 = json.loads(o.to_json())
-		d2 = json.loads('{"field2": {"field2_2": {"__options__": [0, 1, 2, 34], "__type__": "uint"}, "field2_1": {"__regex__": "^\\\\S+$", "__type__": "string"}}, "__name__": "hello", "field1": {"__type__": "uint"}, "field4": {"__ui__": {"ui": "information"}, "field4_1": {"__type__": "md5"}, "__array__": "duplicates", "field4_2": {"field4_2_1": {"__type__": "date", "__mysql__": "MySQL information"}}}, "field3": {"__type__": "decimal", "__array__": "unique"}}')
+		d2 = json.loads('{"__name__": "hello", "field1": {"__type__": "uint"}, "field2": {"field2_1": {"__type__": "string", "__regex__": "^\\\\S+$"}, "field2_2": {"__type__": "uint", "__options__": [0, 1, 2, 34]}}, "field3": {"__array__": "unique", "__type__": {"__type__": "decimal"}}, "field4": {"__array__": "duplicates", "__type__": {"field4_1": {"__type__": "md5"}, "field4_2": {"field4_2_1": {"__type__": "date", "__mysql__": "MySQL information"}}}, "__ui__": {"ui": "information"}}}')
 		self.assertTrue(d1 == d2, 'to_json failed: %s' % o.to_json())
 
 	def test_Tree_Valid(self):
@@ -1304,7 +1304,7 @@ class define_Test(unittest.TestCase):
 		# Check for False
 		self.assertFalse(o['field2']['field2_1'].valid('    '), '"    " is not a valid value for hello.field2.field2_1')
 		self.assertTrue(o['field2']['field2_1'].validation_failures[0][0] == '', 'error name is not correct: "' + str(o['field2']['field2_1'].validation_failures[0][0]) + '"')
-		self.assertTrue(o['field2']['field2_1'].validation_failures[0][1] == 'failed regex (custom)', 'error value is not correct')
+		self.assertTrue(o['field2']['field2_1'].validation_failures[0][1] == 'failed regex', 'error value is not correct')
 
 		self.assertFalse(o['field2'].valid({"field2_1":"Hello","field2_2":4}), '{"field2_1":"Hello","field2_2":4} is not a valid value for hello.field2')
 		self.assertTrue(o['field2'].validation_failures[0][0] == 'field2_2', 'error name is not correct: "' + str(o['field2'].validation_failures[0][0]) + '"')
@@ -1312,34 +1312,34 @@ class define_Test(unittest.TestCase):
 
 		self.assertFalse(o['field2'].valid({"field2_1":"   ","field2_2":2}), '{"field2_1":"   ","field2_2":2} is not a valid value for hello.field2')
 		self.assertTrue(o['field2'].validation_failures[0][0] == 'field2_1', 'error name is not correct: "' + str(o['field2'].validation_failures[0][0]) + '"')
-		self.assertTrue(o['field2'].validation_failures[0][1] == 'failed regex (custom)', 'error value is not correct: "' + str(o['field2'].validation_failures[0][1]) + '"')
+		self.assertTrue(o['field2'].validation_failures[0][1] == 'failed regex', 'error value is not correct: "' + str(o['field2'].validation_failures[0][1]) + '"')
 
 		self.assertFalse(o.valid({"field1":"NotAnINTEGER","field2":{"field2_1":"ThisString","field2_2":34},"field3":[0.3,10.3,20.3],"field4":[{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"},},{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"}}]}), '{"field1":"NotAnINTEGER","field2":{"field2_1":"ThisString","field2_2":34},"field3":[0.3,10.3,20.3],"field4":[{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"},},{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"}}]} is not a valid value for hello')
 		self.assertTrue(o.validation_failures[0][0] == 'hello.field1', 'error name is not correct: "' + str(o.validation_failures[0][0]) + '"')
 		self.assertTrue(o.validation_failures[0][1] == 'not an integer', 'error value is not correct: "' + str(o.validation_failures[0][1]) + '"')
 
-		self.assertFalse(o.valid({"field1":"NotAnINTEGER","field2":{"field2_1":"This String","field2_2":3},"field3":[0.3,10.3,20.3],"field4":[{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"},},{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"}}]}, False), '{"field1":"NotAnINTEGER","field2":{"field2_1":"ThisString","field2_2":34},"field3":[0.3,10.3,20.3],"field4":[{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"},},{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"}}]} is not a valid value for hello')
+		self.assertFalse(o.valid({"field1":"NotAnINTEGER","field2":{"field2_1":"This String","field2_2":3},"field3":[0.3,10.3,20.3],"field4":[{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"},},{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"}}]}), '{"field1":"NotAnINTEGER","field2":{"field2_1":"ThisString","field2_2":34},"field3":[0.3,10.3,20.3],"field4":[{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"},},{"field4_1":"49c0d2aef0ab2634b0051544cdbf2415","field4_2":{"field4_2_1":"2016-03-05"}}]} is not a valid value for hello')
 
 		# Pythons complete lack of keeping keys in the same order as they were
 		#	added results in some inconsistent error messages, so we need to
 		#	hack the test results a tad
 		for err in o.validation_failures:
-			if err[0] == 'field1' and err[1] == 'not an integer':
+			if err[0] == 'hello.field1' and err[1] == 'not an integer':
 				break
 		else:
-			self.assertTrue(False, 'field1 error not found in list: %s' % str(o.validation_failures))
+			self.assertTrue(False, 'hello.field1 error not found in list: %s' % str(o.validation_failures))
 
 		for err in o.validation_failures:
-			if err[0] == 'field2.field2_1' and err[1] == 'failed regex (custom)':
+			if err[0] == 'hello.field2.field2_1' and err[1] == 'failed regex':
 				break
 		else:
-			self.assertTrue(False, 'field2.field2_1 error not found in list: %s' % str(o.validation_failures))
+			self.assertTrue(False, 'hello.field2.field2_1 error not found in list: %s' % str(o.validation_failures))
 
 		for err in o.validation_failures:
-			if err[0] == 'field2.field2_2' and err[1] == 'not in options':
+			if err[0] == 'hello.field2.field2_2' and err[1] == 'not in options':
 				break
 		else:
-			self.assertTrue(False, 'field2.field2_2 error not found in list: %s' % str(o.validation_failures))
+			self.assertTrue(False, 'hello.field2.field2_2 error not found in list: %s' % str(o.validation_failures))
 
 	def test_Tree_Valid_Requires(self):
 

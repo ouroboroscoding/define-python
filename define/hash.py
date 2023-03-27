@@ -54,7 +54,7 @@ class Hash(Base):
 		# If the value is not a dict
 		if not isinstance(dDetails['__hash__'], dict):
 			dDetails['__hash__'] = {
-				'type': (dDetails['__hash__'] is True) and \
+				'__type__': (dDetails['__hash__'] is True) and \
 					'string' or \
 					dDetails['__hash__']
 			}
@@ -69,7 +69,7 @@ class Hash(Base):
 		super(Hash, self).__init__(dDetails)
 
 		# Store the child
-		self._node = Base.create(dDetails)
+		self._node = self.create(dDetails)
 
 	def child(self):
 		"""Child
@@ -223,4 +223,4 @@ class Hash(Base):
 		return bRet
 
 # Register with Base
-Base.register('hash', Hash)
+Hash.register('hash')

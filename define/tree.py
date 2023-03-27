@@ -28,13 +28,13 @@ class Tree(Parent):
 		Parent
 	"""
 
-	def __init__(self, details: dict, extend: dict = NOT_SET):
+	def __init__(self, details: dict | str, extend: dict = NOT_SET):
 		"""Constructor
 
 		Initialises the instance
 
 		Arguments:
-			details (dict): Definition
+			details (dict | str): Definition or filepath to load
 			extend (dict | False): Optional, a dictionary to extend the
 									definition
 
@@ -69,3 +69,36 @@ class Tree(Parent):
 		# If for some reason the array flag is set
 		if '__array__' in dDetails:
 			raise KeyError('__array__')
+
+	def to_dict(self):
+		"""To Dict
+
+		Returns the Tree as a dictionary in the same format as is used in
+		constructing it
+
+		Returns:
+			dict
+		"""
+
+		# Init the dictionary we will return
+		dRet = {'__name__': self._name}
+
+		# Get the parents dict and add it to the return
+		dRet.update(super(Tree, self).to_dict())
+
+		# Return
+		return dRet
+
+	def valid(self, value: dict):
+		"""Valid
+
+		Checks if a value is valid based on the instance's values. If any errors
+		occur, they can be found in [instance].validation_failures as a list
+
+		Arguments:
+			value (any): The value to validate
+
+		Returns:
+			bool
+		"""
+		return super(Tree, self).valid(value, [self._name])

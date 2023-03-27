@@ -11,7 +11,9 @@ __created__		= "2023-03-18"
 
 # Limit exports
 __all__ = [
-	'constants', 'Array', 'Base', 'Hash', 'Node', 'Options', 'Parent', 'Tree'
+	'constants',
+	'Array', 'Base', 'Hash', 'Node', 'Options', 'Parent', 'Tree',
+	'NOT_SET'
 ]
 
 # Import local modules
@@ -25,3 +27,6 @@ Node = node.Node
 Options = options.Options
 Parent = parent.Parent
 Tree = tree.Tree
+
+# Re-Export not set variable
+NOT_SET = base.NOT_SET

@@ -18,7 +18,7 @@ from decimal import Decimal, InvalidOperation as DecimalInvalid
 import hashlib
 import re
 
-# PIP imports
+# Pip imports
 import jsonb
 from tools import combine
 
@@ -992,7 +992,7 @@ class Node(Base):
 
 				# If it doesn't match the regex
 				if not self._regex.match(value):
-					self._validation_failures.append(['.'.join(level), 'invalid'])
+					self._validation_failures.append(['.'.join(level), 'failed regex'])
 					return False
 
 			# Else
@@ -1038,4 +1038,4 @@ class Node(Base):
 		return True
 
 # Register with Base
-Base.register('node', Node)
+Node.register('node')
