@@ -122,16 +122,16 @@ class Node(Base):
 		self._minimum = None
 		self._maximum = None
 
-		# If there's a regex string available
-		if '__regex__' in details:
-			self.regex(details['__regex__'])
-
-		# Else if there's a list of options
-		elif '__options__' in details:
+		# If we have options
+		if '__options__' in details:
 			self.options(details['__options__'])
 
-		# Else
+		# Else, no options
 		else:
+
+			# If there's a regex string available
+			if '__regex__' in details:
+				self.regex(details['__regex__'])
 
 			# If there's a min or max
 			bMin = ('__minimum__' in details and True or False)
