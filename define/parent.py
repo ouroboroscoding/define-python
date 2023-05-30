@@ -12,6 +12,9 @@ __created__		= "2023-03-19"
 # Limit exports
 __all__ = ['Parent']
 
+# Python imports
+from typing import Literal as TL
+
 # Local imports
 from .base import Base, NOT_SET
 from . import constants
@@ -55,7 +58,7 @@ class Parent(Base):
 		"""
 		return self._nodes[key]
 
-	def __init__(self, details: dict, extend: dict = NOT_SET):
+	def __init__(self, details: dict, extend: dict | TL[False] = NOT_SET):
 		"""Constructor
 
 		Initialises the instance

@@ -12,6 +12,9 @@ __created__		= "2023-03-18"
 # Limit exports
 __all__ = ['Array']
 
+# Python imports
+from typing import Literal as TL
+
 # Local imports
 from .base import Base, NOT_SET
 from . import constants
@@ -30,7 +33,7 @@ class Array(Base):
 
 	Holds a list of valid values used to represent arrays types"""
 
-	def __init__(self, details: dict, extend: dict = NOT_SET):
+	def __init__(self, details: dict, extend: dict | TL[False] = NOT_SET):
 		"""Constructor
 
 		Initialises the instance
@@ -84,8 +87,10 @@ class Array(Base):
 		if 'minimum' in dDetails['__array__'] \
 			or 'maximum' in dDetails['__array__']:
 			self.minmax(
-				('minimum' in dDetails['__array__'] and dDetails['__array__']['minimum'] or None),
-				('maximum' in dDetails['__array__'] and dDetails['__array__']['maximum'] or None)
+				('minimum' in dDetails['__array__'] and \
+					dDetails['__array__']['minimum'] or None),
+				('maximum' in dDetails['__array__'] and \
+					dDetails['__array__']['maximum'] or None)
 			)
 
 		# Remove the __array__ field from details
@@ -94,7 +99,7 @@ class Array(Base):
 		# Create the child node
 		self._node = self.create(dDetails)
 
-	def child(self):
+	def child(self) -> Base:
 		"""Child
 
 		Returns the child node associated with the array
@@ -104,7 +109,10 @@ class Array(Base):
 		"""
 		return self._node
 
-	def clean(self, value: list | None, level: list = NOT_SET):
+	def clean(self,
+		value: list[any] | None,
+		level: list[str] = NOT_SET
+	) -> list[any] | None:
 		"""Clean
 
 		Goes through each of the values in the list, cleans it, stores it, and
@@ -157,7 +165,7 @@ class Array(Base):
 		# Return the cleaned list
 		return lRet
 
-	def minmax(self, minimum: int = NOT_SET, maximum: int = NOT_SET):
+	def minmax(self, minimum: int = NOT_SET, maximum: int = NOT_SET) -> None:
 		"""Min/Max
 
 		Sets or gets the minimum and maximum number of items for the Array
@@ -185,7 +193,10 @@ class Array(Base):
 
 			# If minimum wasn't passed
 			if minimum is NOT_SET:
-				raise ValueError('"minimum" can only be undefined if "maximum" is also undefined')
+				raise ValueError(
+					'"minimum" can only be undefined if "maximum" is also '\
+					'undefined'
+				)
 
 			# If it's a string
 			if isinstance(minimum, str):
@@ -203,7 +214,9 @@ class Array(Base):
 
 			# If it's below zero
 			if minimum < 0:
-				raise ValueError('"minimum" of array must be an unsigned integer')
+				raise ValueError(
+					'"minimum" of array must be an unsigned integer'
+				)
 
 			# Store the minimum
 			self._minimum = minimum
@@ -213,7 +226,10 @@ class Array(Base):
 
 			# If the maximum wasn't passed
 			if maximum is NOT_SET:
-				raise ValueError('"maximum" can only be undefined if "minimum" is also undefined')
+				raise ValueError(
+					'"maximum" can only be undefined if "minimum" is also ' \
+					'undefined'
+				)
 
 			# If it's a string
 			if isinstance(maximum, str):
@@ -231,17 +247,21 @@ class Array(Base):
 
 			# If it's below zero
 			if maximum < 0:
-				raise ValueError('"maximum" of array must be an unsigned integer')
+				raise ValueError(
+					'"maximum" of array must be an unsigned integer'
+				)
 
 			# If we also have a minimum and the max is somehow below it
 			if self._minimum \
 				and maximum < self._minimum:
-				raise ValueError('"maximum" of array must not be less than "minimum"')
+				raise ValueError(
+					'"maximum" of array must not be less than "minimum"'
+				)
 
 			# Store the maximum
 			self._maximum = maximum
 
-	def to_dict(self):
+	def to_dict(self) -> dict:
 		"""To Dictionary
 
 		Returns the Array as a dictionary in the same format as is used in
@@ -283,7 +303,7 @@ class Array(Base):
 		# Return
 		return dRet
 
-	def type(self, type: str = NOT_SET):
+	def type(self, type: str = NOT_SET) -> str | None:
 		"""Type
 
 		Getter/Setter for the type of array
@@ -299,16 +319,21 @@ class Array(Base):
 		# Else, it's a setter
 		#	If the value is invalid
 		if type not in self._VALID_ARRAY:
-			raise ValueError('"%s" is not a valid type for __array__' % str(type))
+			raise ValueError(
+				'"%s" is not a valid type for __array__' % str(type)
+			)
 
 		# Store the new type
 		self._type = type
 
-	def valid(self, value: list | None, level: list = NOT_SET):
+	def valid(self,
+		value: list[any] | None,
+		level: list[str] = NOT_SET
+	) -> bool:
 		"""Valid
 
 		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in [instance].validation_failures as a list
+		occur, they can be found in self.validation_failures as a list
 
 		Arguments:
 			value (list): The value to validate
@@ -355,7 +380,9 @@ class Array(Base):
 
 			# If the element isn't valid, return false
 			if not self._node.valid(value[i], lLevel):
-				self._validation_failures.extend(self._node.validation_failures[:])
+				self._validation_failures.extend(
+					self._node.validation_failures[:]
+				)
 				bRet = False
 				continue
 
@@ -369,7 +396,10 @@ class Array(Base):
 					iIndex = lItems.index(value[i])
 
 					# Add the error to the list
-					self._validation_failures.append(['.'.join(lLevel), 'duplicate of %s[%d]' % ('.'.join(level), iIndex)])
+					self._validation_failures.append([
+						'.'.join(lLevel),
+						'duplicate of %s[%d]' % ('.'.join(level), iIndex)
+					])
 					bRet = False
 					continue
 
@@ -383,7 +413,10 @@ class Array(Base):
 
 			# If we don't have enough
 			if len(value) < self._minimum:
-				self._validation_failures.append(['.'.join(level), 'did not meet minimum'])
+				self._validation_failures.append([
+					'.'.join(level),
+					'did not meet minimum'
+				])
 				bRet = False
 
 		# If there's a maximum
@@ -391,7 +424,10 @@ class Array(Base):
 
 			# If we have too many
 			if len(value) > self._maximum:
-				self._validation_failures.append(['.'.join(level), 'exceeds maximum'])
+				self._validation_failures.append([
+					'.'.join(level),
+					'exceeds maximum'
+				])
 				bRet = False
 
 		# Return whatever the result was

@@ -12,6 +12,9 @@ __created__		= "2023-03-18"
 # Limit exports
 __all__ = ['Hash']
 
+# Python imports
+from typing import Literal as TL
+
 # Local imports
 from .base import Base, NOT_SET
 from .node import Node
@@ -27,7 +30,7 @@ class Hash(Base):
 		Base
 	"""
 
-	def __init__(self, details: dict, extend: dict = NOT_SET):
+	def __init__(self, details: dict, extend: dict | TL[False] = NOT_SET):
 		"""Constructor
 
 		Initialises the instance
@@ -71,7 +74,7 @@ class Hash(Base):
 		# Store the child
 		self._node = self.create(dDetails)
 
-	def child(self):
+	def child(self) -> Base:
 		"""Child
 
 		Returns the child node associated with the hash
@@ -81,7 +84,7 @@ class Hash(Base):
 		"""
 		return self._node
 
-	def clean(self, value: dict | None, level: list = NOT_SET):
+	def clean(self, value: dict | None, level: list[str] = NOT_SET) -> any:
 		"""Clean
 
 		Makes sure both the key and value are properly stored in their correct
@@ -94,7 +97,7 @@ class Hash(Base):
 			ValueError
 
 		Returns:
-			any | None
+			dict | list | any | None
 		"""
 
 		# If the level is not set
@@ -137,7 +140,17 @@ class Hash(Base):
 		# Return the cleaned value
 		return dRet
 
-	def to_dict(self):
+	def key(self) -> Node:
+		"""Key
+
+		Property to return the node associated with the key
+
+		Returns:
+			Node
+		"""
+		return self._key
+
+	def to_dict(self) -> dict:
 		"""To Dict
 
 		Returns the Hash as a dictionary in the same format as is used in
@@ -162,7 +175,7 @@ class Hash(Base):
 		# Return
 		return dRet
 
-	def valid(self, value: dict | None, level: list = NOT_SET):
+	def valid(self, value: dict | None, level: list[str] = NOT_SET) -> bool:
 		"""Valid
 
 		Checks if a value is valid based on the instance's values. If any errors
@@ -194,7 +207,10 @@ class Hash(Base):
 
 		# If the value isn't a dictionary
 		if not isinstance(value, dict):
-			self._validation_failures.append(['.'.join(level), 'not a valid object'])
+			self._validation_failures.append([
+				'.'.join(level),
+				'not a valid object'
+			])
 			return False
 
 		# Init the return, assume valid
@@ -209,7 +225,10 @@ class Hash(Base):
 
 			# If the key isn't valid
 			if not self._key.valid(k):
-				self._validation_failures.append(['.'.join(lLevel), 'invalid key: %s' % str(k)])
+				self._validation_failures.append([
+					'.'.join(lLevel),
+					'invalid key: %s' % str(k)
+				])
 				bRet = False
 				continue
 

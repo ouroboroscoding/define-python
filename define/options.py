@@ -13,6 +13,9 @@ __created__		= "2023-03-19"
 # Limit exports
 __all__ = ['Options']
 
+# Python imports
+from typing import Literal as TL
+
 # Pip imports
 from tools import clone, merge
 
@@ -46,7 +49,7 @@ class Options(Base):
 		"""
 		return self._nodes[index]
 
-	def __init__(self, details: list, extend: list = NOT_SET):
+	def __init__(self, details: list, extend: list[dict] | TL[False] = NOT_SET):
 		"""Constructor
 
 		Initialises the instance

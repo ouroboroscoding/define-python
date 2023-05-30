@@ -11,22 +11,19 @@ __created__		= "2023-03-18"
 
 # Limit exports
 __all__ = [
-	'constants',
+	'constants', 'NOT_SET',
 	'Array', 'Base', 'Hash', 'Node', 'Options', 'Parent', 'Tree',
-	'NOT_SET'
 ]
 
+# Import jobject
+import jobject
+
 # Import local modules
-from . import array, base, constants, hash, node, options, parent, tree
-
-# Re-Export the classes
-Array = array.Array
-Base = base.Base
-Hash = hash.Hash
-Node = node.Node
-Options = options.Options
-Parent = parent.Parent
-Tree = tree.Tree
-
-# Re-Export not set variable
-NOT_SET = base.NOT_SET
+from . import constants
+from .array import Array
+from .base import NOT_SET, Base
+from .hash import Hash
+from .node import Node
+from .options import Options
+from .parent import Parent
+from .tree import Tree

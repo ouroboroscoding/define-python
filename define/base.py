@@ -71,9 +71,9 @@ class Base(abc.ABC):
 			if isinstance(details['__optional__'], bool):
 				self._optional = details['__optional__']
 
-			# Else, write a warning to stderr
+			# Else, raise an error
 			else:
-				sys.stderr.write('"%s" is not a valid value for __optional__, assuming False' % str(details['__optional__']))
+				raise ValueError('"__optional__" must be a bool')
 
 			# Remove it from details
 			del details['__optional__']
@@ -121,7 +121,7 @@ class Base(abc.ABC):
 		return self.__class
 
 	@abc.abstractmethod
-	def clean(self, value: any, level: list):
+	def clean(self, value: any, level: list[str]):
 		"""Clean
 
 		As validation allows for strings representing non-string values, it is
@@ -321,7 +321,11 @@ class Base(abc.ABC):
 		# Store the new constructor
 		cls.__classes[s] = cls
 
-	def special(self, name, value=None, default=None):
+	def special(self,
+		name: str,
+		value: any = NOT_SET,
+		default: any = None
+	) -> any:
 		"""Special
 
 		Getter/Setter method for special values associated with nodes that are
@@ -332,9 +336,9 @@ class Base(abc.ABC):
 
 		Args:
 			name (str): The name of the value to either set or get
-			value (mixed): The value to set
+			value (any): The value to set
 				Must be something that can be converted directly to JSON
-			default (mixed): The default value
+			default (any): The default value
 				Returned if the special field doesn't exist
 
 		Returns:
@@ -353,10 +357,12 @@ class Base(abc.ABC):
 
 		# Check the name is valid
 		if not constants.special['name'].match(name):
-			raise ValueError('special name must match "%s"' % constants.special['syntax'])
+			raise ValueError(
+				'special name must match "%s"' % constants.special['syntax']
+			)
 
 		# If the value is not set, this is a getter
-		if value is None:
+		if value is NOT_SET:
 
 			# Return the value or the default
 			try:
@@ -377,7 +383,7 @@ class Base(abc.ABC):
 				))
 
 			# Save it
-			self.__special[name]	= value
+			self.__special[name] = value
 
 	def to_dict(self):
 		"""To Dict
@@ -414,7 +420,7 @@ class Base(abc.ABC):
 		return jsonb.encode(self.to_dict())
 
 	@abc.abstractmethod
-	def valid(self, value, level=[]):
+	def valid(self, value: any, level: list[str] = []) -> bool:
 		"""Valid
 
 		Checks if a value is valid based on the instance's values
@@ -428,12 +434,12 @@ class Base(abc.ABC):
 		pass
 
 	@property
-	def validation_failures(self):
+	def validation_failures(self) -> list[list[str]]:
 		"""Validation Failures
 
 		Returns the last failures as a property so they can't be overwritten
 
 		Returns:
-			list
+			[field, error][]
 		"""
 		return self._validation_failures
