@@ -109,7 +109,6 @@ class Base(abc.ABC):
 			str(self.to_dict())
 		)
 
-	@property
 	def class_name(self):
 		"""Class Name
 
@@ -366,7 +365,7 @@ class Base(abc.ABC):
 
 			# Return the value or the default
 			try:
-				return copy.deepcopy(self._special[name])
+				return copy.deepcopy(self.__special[name])
 			except KeyError:
 				return default
 

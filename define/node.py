@@ -109,7 +109,7 @@ class Node(Base):
 
 		# If the type is invalid
 		if dDetails['__type__'] not in self._VALID_TYPES:
-			raise KeyError('__type__ invalid')
+			raise KeyError('__type__ (%s) invalid' % dDetails['__type__'])
 
 		# Call the parent constructor
 		super(Node, self).__init__(dDetails)
