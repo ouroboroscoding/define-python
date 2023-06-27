@@ -24,7 +24,7 @@ setup(
 	install_requires=[
 		"jobject>=1.0.1,<1.1",
 		"jsonb>=1.0.0,<1.1",
-		"tools-oc>=1.0.0,<1.1"
+		"tools-oc>=1.2.0,<1.3"
 	],
 	test_suite='tests',
 	zip_safe=True
