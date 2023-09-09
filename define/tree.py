@@ -1,7 +1,7 @@
 # coding=utf8
 """Tree
 
-Represents the master parent of a record, holds special data to represent
+Represents the master parent of a record, holds special data to represent \
 how the entire tree is stored
 """
 
@@ -13,32 +13,34 @@ __created__		= "2023-03-19"
 # Limit exports
 __all__ = ['Tree']
 
+# Ouroboros imports
+import undefined
+
 # Python imports
 from typing import Literal as TL
 
 # Local imports
-from .base import NOT_SET
-from .parent import Parent
-from . import constants
+from define import constants
+from define.parent import Parent
 
 class Tree(Parent):
 	"""Tree
 
-	Represents the master parent of a record, holds special data to represent
+	Represents the master parent of a record, holds special data to represent \
 	how the entire tree is stored
 
 	Extends:
 		Parent
 	"""
 
-	def __init__(self, details: dict | str, extend: dict | TL[False] = NOT_SET):
+	def __init__(self, details: dict | str, extend: dict | TL[False] = undefined):
 		"""Constructor
 
 		Initialises the instance
 
 		Arguments:
 			details (dict | str): Definition or filepath to load
-			extend (dict | False): Optional, a dictionary to extend the
+			extend (dict | False): Optional, a dictionary to extend the \
 									definition
 
 		Raises:
@@ -76,7 +78,7 @@ class Tree(Parent):
 	def to_dict(self):
 		"""To Dict
 
-		Returns the Tree as a dictionary in the same format as is used in
+		Returns the Tree as a dictionary in the same format as is used in \
 		constructing it
 
 		Returns:
@@ -92,16 +94,18 @@ class Tree(Parent):
 		# Return
 		return dRet
 
-	def valid(self, value: dict):
+	def valid(self, value: dict, ignore_missing = False):
 		"""Valid
 
-		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in [instance].validation_failures as a list
+		Checks if a value is valid based on the instance's values. If any \
+		errors occur, they can be found in [instance].validation_failures as a \
+		list
 
 		Arguments:
 			value (any): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
 		"""
-		return super(Tree, self).valid(value, [self._name])
+		return super(Tree, self).valid(value, ignore_missing, [self._name])

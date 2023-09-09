@@ -12,6 +12,11 @@ __created__		= "2023-03-19"
 # Limit exports
 __all__ = ['Node']
 
+# Ouroboros imports
+import jsonb
+from tools import combine
+import undefined
+
 # Python imports
 from datetime import date, datetime, time
 from decimal import Decimal, InvalidOperation as DecimalInvalid
@@ -19,13 +24,9 @@ import hashlib
 import re
 from typing import Literal as TL
 
-# Pip imports
-import jsonb
-from tools import combine
-
 # Local imports
-from .base import Base, NOT_SET
-from . import constants
+from define import constants
+from define.base import Base
 
 # There is no way to access the real type of compiled regular expressions or md5
 #	hashes so unfortunately we have to do this ugly hack
@@ -48,14 +49,17 @@ class Node(Base):
 
 	Holds a list of valid values used to represent Node types"""
 
-	def __init__(self, details: dict | str, extend: dict | TL[False] = NOT_SET):
+	def __init__(self,
+		details: dict | str,
+		extend: dict | TL[False] = undefined
+	):
 		"""Constructor
 
 		Initialises the instance
 
 		Arguments:
 			details (dict | str): Definition, or type string
-			extend (dict | False): Optional, a dictionary to extend the
+			extend (dict | False): Optional, a dictionary to extend the \
 									definition
 
 		Raises:
@@ -72,7 +76,7 @@ class Node(Base):
 		if isinstance(details, str):
 
 			# If we got no extend or it's False
-			if extend is NOT_SET or extend is False:
+			if extend is undefined or extend is False:
 
 				# Store the type as the passed string
 				dDetails = { '__type__': details }
@@ -181,7 +185,7 @@ class Node(Base):
 			elif lFirst[i] < lSecond[i]:
 				return -1
 
-	def clean(self, value: any, level: list[str] = NOT_SET):
+	def clean(self, value: any, level: list[str] = undefined):
 		"""Clean
 
 		Cleans and returns the new value
@@ -194,7 +198,7 @@ class Node(Base):
 		"""
 
 		# If the level is not set
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# If the value is None and it's optional, return as is
@@ -343,10 +347,10 @@ class Node(Base):
 		# Return the cleaned value
 		return value
 
-	def minmax(self, minimum: any = NOT_SET, maximum: any = NOT_SET):
+	def minmax(self, minimum: any = undefined, maximum: any = undefined):
 		"""Min/Max
 
-		Sets or gets the minimum and/or maximum values for the Node. For
+		Sets or gets the minimum and/or maximum values for the Node. For \
 		getting, returns {"minimum":mixed,"maximum":mixed}
 
 		Arguments:
@@ -361,7 +365,7 @@ class Node(Base):
 		"""
 
 		# If neither min or max is set, this is a getter
-		if minimum is NOT_SET and maximum is NOT_SET:
+		if minimum is undefined and maximum is undefined:
 			return {
 				'minimum': self._minimum,
 				'maximum': self._maximum
@@ -371,7 +375,7 @@ class Node(Base):
 		if minimum != None:
 
 			# If it's undefined
-			if minimum is NOT_SET:
+			if minimum is undefined:
 				raise ValueError(
 					'"minimum" can only be undefined if "maximum" is also ' \
 					'undefined'
@@ -384,8 +388,8 @@ class Node(Base):
 				if not isinstance(minimum, str) \
 					or not constants.regex[self._type].match(minimum):
 					raise ValueError(
-						'"__minimum__" is not valid for the current type: "%s"' \
-						% self._type
+						'"__minimum__" is not valid for the current type: ' \
+						'"%s"' % self._type
 					)
 
 			# Else if the type is an int (unsigned, timestamp), or a string in
@@ -455,7 +459,7 @@ class Node(Base):
 		if maximum != None:
 
 			# If it's undefined
-			if maximum is NOT_SET:
+			if maximum is undefined:
 				raise ValueError(
 					'"maximum" can only be undefined if "minimum" is also ' \
 					'undefined'
@@ -468,8 +472,8 @@ class Node(Base):
 				if not isinstance(maximum, str) \
 					or not constants.regex[self._type].match(maximum):
 					raise ValueError(
-						'"__maximum__" is not valid for the current type: "%s"' \
-						% self._type
+						'"__maximum__" is not valid for the current type: ' \
+						'"%s"' % self._type
 					)
 
 			# Else if the type is an int (unsigned, timestamp), or a string in
@@ -558,7 +562,7 @@ class Node(Base):
 			# Store the maximum
 			self._maximum = maximum
 
-	def options(self, options: list[any] = NOT_SET):
+	def options(self, options: list[any] = undefined):
 		"""Options
 
 		Setter/Getter for the list of acceptable values for the Node
@@ -574,7 +578,7 @@ class Node(Base):
 		"""
 
 		# If opts aren't set, this is a getter
-		if options is NOT_SET:
+		if options is undefined:
 			return self._options
 
 		# If the options are not a list
@@ -582,8 +586,8 @@ class Node(Base):
 			raise ValueError('"__options__" must be a list')
 
 		# If the type is not one that can have options
-		if self._type not in ['base64', 'date', 'datetime', 'decimal', 'float', \
-								'int', 'ip', 'md5', 'price', 'string', 'time', \
+		if self._type not in ['base64', 'date', 'datetime', 'decimal', 'float',
+								'int', 'ip', 'md5', 'price', 'string', 'time',
 								'timestamp', 'uint', 'uuid', 'uuid4']:
 			raise TypeError(
 				'can not set __options__ for "%s" type' % self._type
@@ -711,13 +715,13 @@ class Node(Base):
 		# Store the list of options
 		self._options = lOpts
 
-	def regex(self, regex: str | _REGEX_TYPE = NOT_SET):
+	def regex(self, regex: str | _REGEX_TYPE = undefined):
 		"""Regex
 
 		Sets or gets the regular expression used to validate the Node
 
 		Arguments:
-			regex (str): A standard regular expression string, or compiled
+			regex (str): A standard regular expression string, or compiled \
 							regular expression
 
 		Raises:
@@ -728,7 +732,7 @@ class Node(Base):
 		"""
 
 		# If regex was not set, this is a getter
-		if regex is NOT_SET:
+		if regex is undefined:
 			return self._regex
 
 		# If the type is not a string
@@ -750,7 +754,7 @@ class Node(Base):
 	def to_dict(self):
 		"""To Dict
 
-		Returns the Node as a dictionary in the same format as is used in
+		Returns the Node as a dictionary in the same format as is used in \
 		constructing it
 
 		Returns:
@@ -798,14 +802,20 @@ class Node(Base):
 		"""
 		return self._type
 
-	def valid(self, value: any, level: list[str] = NOT_SET) -> bool:
+	def valid(self,
+		value: any,
+		ignore_missing = False,
+		level: list[str] = undefined
+	) -> bool:
 		"""Valid
 
-		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in [instance].validation_failures as a list
+		Checks if a value is valid based on the instance's values. If any \
+		errors occur, they can be found in [instance].validation_failures as a \
+		list
 
 		Arguments:
 			value (any): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
@@ -815,14 +825,14 @@ class Node(Base):
 		self._validation_failures = []
 
 		# If the level is not passed
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# If the value is None
 		if value is None:
 
-			# If it's optional, we're good
-			if self._optional:
+			# If it's optional, or we're ignoring missing values, we're good
+			if self._optional or ignore_missing:
 				return True
 
 			# Invalid value
@@ -840,7 +850,9 @@ class Node(Base):
 			if self._type == 'date' and isinstance(value, (date, datetime)):
 				value = value.strftime('%Y-%m-%d')
 
-			elif self._type == 'datetime' and isinstance(value, (date, datetime)):
+			elif self._type == 'datetime' and \
+				isinstance(value, (date, datetime)
+			):
 				if isinstance(value, datetime):
 					value = value.strftime('%Y-%m-%d %H:%M:%S')
 				elif isinstance(value, date):

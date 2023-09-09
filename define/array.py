@@ -12,12 +12,15 @@ __created__		= "2023-03-18"
 # Limit exports
 __all__ = ['Array']
 
+# Ouroboros imports
+import undefined
+
 # Python imports
 from typing import Literal as TL
 
 # Local imports
-from .base import Base, NOT_SET
-from . import constants
+from define import constants
+from define.base import Base
 
 class Array(Base):
 	"""Array
@@ -33,14 +36,14 @@ class Array(Base):
 
 	Holds a list of valid values used to represent arrays types"""
 
-	def __init__(self, details: dict, extend: dict | TL[False] = NOT_SET):
+	def __init__(self, details: dict, extend: dict | TL[False] = undefined):
 		"""Constructor
 
 		Initialises the instance
 
 		Arguments:
 			details (dict): Definition
-			extend (dict | False): Optional, a dictionary to extend the
+			extend (dict | False): Optional, a dictionary to extend the \
 									definition
 
 		Raises:
@@ -111,11 +114,11 @@ class Array(Base):
 
 	def clean(self,
 		value: list[any] | None,
-		level: list[str] = NOT_SET
+		level: list[str] = undefined
 	) -> list[any] | None:
 		"""Clean
 
-		Goes through each of the values in the list, cleans it, stores it, and
+		Goes through each of the values in the list, cleans it, stores it, and \
 		returns a new list
 
 		Arguments:
@@ -126,7 +129,7 @@ class Array(Base):
 		"""
 
 		# If the level is not set
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# If the value is None and it's optional, return as is
@@ -165,7 +168,10 @@ class Array(Base):
 		# Return the cleaned list
 		return lRet
 
-	def minmax(self, minimum: int = NOT_SET, maximum: int = NOT_SET) -> None:
+	def minmax(self,
+		minimum: int = undefined,
+		maximum: int = undefined
+	) -> None:
 		"""Min/Max
 
 		Sets or gets the minimum and maximum number of items for the Array
@@ -182,7 +188,7 @@ class Array(Base):
 		"""
 
 		# If neither minimum or maximum is set, this is a getter
-		if minimum is NOT_SET and maximum is NOT_SET:
+		if minimum is undefined and maximum is undefined:
 			return {
 				'minimum': self._minimum,
 				'maximum': self._maximum
@@ -192,7 +198,7 @@ class Array(Base):
 		if minimum is not None:
 
 			# If minimum wasn't passed
-			if minimum is NOT_SET:
+			if minimum is undefined:
 				raise ValueError(
 					'"minimum" can only be undefined if "maximum" is also '\
 					'undefined'
@@ -225,7 +231,7 @@ class Array(Base):
 		if maximum is not None:
 
 			# If the maximum wasn't passed
-			if maximum is NOT_SET:
+			if maximum is undefined:
 				raise ValueError(
 					'"maximum" can only be undefined if "minimum" is also ' \
 					'undefined'
@@ -264,7 +270,7 @@ class Array(Base):
 	def to_dict(self) -> dict:
 		"""To Dictionary
 
-		Returns the Array as a dictionary in the same format as is used in
+		Returns the Array as a dictionary in the same format as is used in \
 		constructing it
 
 		Returns:
@@ -303,7 +309,7 @@ class Array(Base):
 		# Return
 		return dRet
 
-	def type(self, type: str = NOT_SET) -> str | None:
+	def type(self, type: str = undefined) -> str | None:
 		"""Type
 
 		Getter/Setter for the type of array
@@ -313,7 +319,7 @@ class Array(Base):
 		"""
 
 		# If type was not passed, it's a getter
-		if type is NOT_SET:
+		if type is undefined:
 			return self._type
 
 		# Else, it's a setter
@@ -328,22 +334,24 @@ class Array(Base):
 
 	def valid(self,
 		value: list[any] | None,
-		level: list[str] = NOT_SET
+		ignore_missing = False,
+		level: list[str] = undefined
 	) -> bool:
 		"""Valid
 
-		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in self.validation_failures as a list
+		Checks if a value is valid based on the instance's values. If any \
+		errors occur, they can be found in self.validation_failures as a list
 
 		Arguments:
 			value (list): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
 		"""
 
 		# If the level was not set
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# Reset validation failures
@@ -352,8 +360,8 @@ class Array(Base):
 		# If the value is None
 		if value is None:
 
-			# If it's optional, we're good
-			if self._optional:
+			# If it's optional, or we're ignoring missing values, we're good
+			if self._optional or ignore_missing:
 				return True
 
 			# Invalid value
@@ -379,7 +387,7 @@ class Array(Base):
 			lLevel.append('[%d]' % i)
 
 			# If the element isn't valid, return false
-			if not self._node.valid(value[i], lLevel):
+			if not self._node.valid(value[i], ignore_missing, lLevel):
 				self._validation_failures.extend(
 					self._node.validation_failures[:]
 				)

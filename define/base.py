@@ -10,22 +10,20 @@ __email__		= "chris@ouroboroscoding.com"
 __created__		= "2023-03-18"
 
 # Limit exports
-__all__ = ['Base', 'NOT_SET']
+__all__ = ['Base']
+
+# Ouroboros imports
+import jsonb
+from tools import clone, combine
+import undefined
 
 # Python imports
 import abc
 import copy
 import sys
 
-# Pip imports
-import jsonb
-from tools import clone, combine
-
 # Local imports
-from . import constants
-
-NOT_SET = []
-"""Used as a unique constant for params not set"""
+from define import constants
 
 class Base(abc.ABC):
 	"""Base
@@ -123,10 +121,10 @@ class Base(abc.ABC):
 	def clean(self, value: any, level: list[str]):
 		"""Clean
 
-		As validation allows for strings representing non-string values, it is
-		useful to be able to "clean" a value and turn it into the value it was
-		representing, making sure that data in data stores is accurate, and not
-		representitive
+		As validation allows for strings representing non-string values, it is \
+		useful to be able to "clean" a value and turn it into the value it was \
+		representing, making sure that data in data stores is accurate, and \
+		not representitive
 
 		Arguments:
 			value (any): The value to clean
@@ -244,7 +242,7 @@ class Base(abc.ABC):
 		dReturn: dict = None
 
 		# If we have no extend at all
-		if extend is NOT_SET:
+		if extend is undefined:
 
 			# Make a copy of the details so we don't screw up the original
 			#	object
@@ -320,34 +318,22 @@ class Base(abc.ABC):
 		# Store the new constructor
 		cls.__classes[s] = cls
 
-	def special(self,
-		name: str,
-		value: any = NOT_SET,
-		default: any = None
-	) -> any:
+	def special(self, name: str, default: any = None) -> any:
 		"""Special
 
-		Getter/Setter method for special values associated with nodes that are
-		not fields
-
-		To retrieve a value or values, pass only the name or names, to set a
-		single special value, pass a name and value
+		Get special values associated with nodes
 
 		Args:
-			name (str): The name of the value to either set or get
-			value (any): The value to set
-				Must be something that can be converted directly to JSON
-			default (any): The default value
-				Returned if the special field doesn't exist
-
-		Returns:
-			On getting, the value of the special field is returned. On setting,
-			nothing is returned
+			name (str): The name of the value to either get
+			default (any): The default value. Returned if the special field \
+							doesn't exist
 
 		Raises:
 			TypeError: If the name is not a valid string
-			ValueError: If the name is invalid, or if setting and the value can
-				not be converted to JSON
+			ValueError: If the name is invalid
+
+		Returns:
+			Returns the special value, or the default
 		"""
 
 		# Check the name is a string
@@ -360,35 +346,59 @@ class Base(abc.ABC):
 				'special name must match "%s"' % constants.special['syntax']
 			)
 
-		# If the value is not set, this is a getter
-		if value is NOT_SET:
+		# Return the value or the default
+		try:
+			return copy.deepcopy(self.__special[name])
+		except KeyError:
+			return default
 
-			# Return the value or the default
-			try:
-				return copy.deepcopy(self.__special[name])
-			except KeyError:
-				return default
+	def special_set(self, name: str, value: any) -> bool:
+		"""Special
 
-		# Else, this is a setter
-		else:
+		Traditionally we don't atlter data after instantiation, but just in
+		case it is needed, it is possible to overwrite special values
 
-			# Can the value safely be turned into JSON
-			try:
-				jsonb.encode(value)
-			except TypeError:
-				raise ValueError('"%s" can not be encoded to JSON in %s.%s' % (
-					self.__class__.__name__,
-					sys._getframe().f_code.co_name
-				))
+		Arguments:
+			name (str): The name of the value to either set
+			value (any): The value to set. Must be something that can be \
+							converted directly to JSON
 
-			# Save it
-			self.__special[name] = value
+		Raises:
+			TypeError: If the name is not a valid string
+			ValueError: If the name is invalid, or if setting and the value \
+						can not be converted to JSON
+
+		Returns:
+			None
+		"""
+
+		# Check the name is a string
+		if not isinstance(name, str):
+			raise TypeError('name must be a string')
+
+		# Check the name is valid
+		if not constants.special['name'].match(name):
+			raise ValueError(
+				'special name must match "%s"' % constants.special['syntax']
+			)
+
+		# Can the value safely be turned into JSON
+		try:
+			jsonb.encode(value)
+		except TypeError:
+			raise ValueError('"%s" can not be encoded to JSON in %s.%s' % (
+				self.__class__.__name__,
+				sys._getframe().f_code.co_name
+			))
+
+		# Save it
+		self.__special[name] = value
 
 	def to_dict(self):
 		"""To Dict
 
-		Returns the basic node as a dictionary in the same format as is used in
-		constructing it
+		Returns the basic node as a dictionary in the same format as is used \
+		in constructing it
 
 		Returns:
 			dict
@@ -419,13 +429,18 @@ class Base(abc.ABC):
 		return jsonb.encode(self.to_dict())
 
 	@abc.abstractmethod
-	def valid(self, value: any, level: list[str] = []) -> bool:
+	def valid(self,
+		value: any,
+		ignore_missing = False,
+		level: list[str] = undefined
+	) -> bool:
 		"""Valid
 
 		Checks if a value is valid based on the instance's values
 
 		Args:
 			value (mixed): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool

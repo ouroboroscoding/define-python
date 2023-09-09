@@ -12,32 +12,34 @@ __created__		= "2023-03-18"
 # Limit exports
 __all__ = ['Hash']
 
+# Ouroboros imports
+import undefined
+
 # Python imports
 from typing import Literal as TL
 
 # Local imports
-from .base import Base, NOT_SET
-from .node import Node
-from . import constants
+from define.base import Base
+from define.node import Node
 
 class Hash(Base):
 	"""Hash
 
-	Handles objects similar to Parents except where the keys are dynamic instead
-	of static
+	Handles objects similar to Parents except where the keys are dynamic \
+	instead of static
 
 	Extends:
 		Base
 	"""
 
-	def __init__(self, details: dict, extend: dict | TL[False] = NOT_SET):
+	def __init__(self, details: dict, extend: dict | TL[False] = undefined):
 		"""Constructor
 
 		Initialises the instance
 
 		Arguments:
 			details (dict): Definition
-			extend (dict | False): Optional, a dictionary to extend the
+			extend (dict | False): Optional, a dictionary to extend the \
 									definition
 
 		Raises:
@@ -84,10 +86,10 @@ class Hash(Base):
 		"""
 		return self._node
 
-	def clean(self, value: dict | None, level: list[str] = NOT_SET) -> any:
+	def clean(self, value: dict | None, level: list[str] = undefined) -> any:
 		"""Clean
 
-		Makes sure both the key and value are properly stored in their correct
+		Makes sure both the key and value are properly stored in their correct \
 		representation
 
 		Arguments:
@@ -101,7 +103,7 @@ class Hash(Base):
 		"""
 
 		# If the level is not set
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# If the value is None
@@ -153,7 +155,7 @@ class Hash(Base):
 	def to_dict(self) -> dict:
 		"""To Dict
 
-		Returns the Hash as a dictionary in the same format as is used in
+		Returns the Hash as a dictionary in the same format as is used in \
 		constructing it
 
 		Returns:
@@ -175,21 +177,27 @@ class Hash(Base):
 		# Return
 		return dRet
 
-	def valid(self, value: dict | None, level: list[str] = NOT_SET) -> bool:
+	def valid(self,
+		value: dict | None,
+		ignore_missing = False,
+		level: list[str] = undefined
+	) -> bool:
 		"""Valid
 
-		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in [instance].validation_failures as a list
+		Checks if a value is valid based on the instance's values. If any \
+		errors occur, they can be found in [instance].validation_failures as \
+		a list
 
 		Arguments:
 			value (dict | None): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
 		"""
 
 		# If the level is not set
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# Reset validation failures
@@ -198,8 +206,8 @@ class Hash(Base):
 		# If the value is None
 		if value is None:
 
-			# If it's optional, we're good
-			if self._optional:
+			# If it's optional, or we're ignoring missing values, we're good
+			if self._optional or ignore_missing:
 				return True
 
 			# Invalid value
@@ -233,7 +241,7 @@ class Hash(Base):
 				continue
 
 			# Check the value
-			if not self._node.valid(v, lLevel):
+			if not self._node.valid(v, ignore_missing, lLevel):
 				self._validation_failures.extend(self._node.validation_failures)
 				bRet = False
 				continue
