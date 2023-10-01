@@ -326,7 +326,7 @@ class Base(abc.ABC):
 		Args:
 			name (str): The name of the value to either get
 			default (any): The default value. Returned if the special field \
-							doesn't exist
+				doesn't exist
 
 		Raises:
 			TypeError: If the name is not a valid string
@@ -361,12 +361,12 @@ class Base(abc.ABC):
 		Arguments:
 			name (str): The name of the value to either set
 			value (any): The value to set. Must be something that can be \
-							converted directly to JSON
+				converted directly to JSON
 
 		Raises:
 			TypeError: If the name is not a valid string
 			ValueError: If the name is invalid, or if setting and the value \
-						can not be converted to JSON
+				can not be converted to JSON
 
 		Returns:
 			None

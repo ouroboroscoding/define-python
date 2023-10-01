@@ -60,7 +60,7 @@ class Node(Base):
 		Arguments:
 			details (dict | str): Definition, or type string
 			extend (dict | False): Optional, a dictionary to extend the \
-									definition
+				definition
 
 		Raises:
 			KeyError, ValueError
@@ -722,7 +722,7 @@ class Node(Base):
 
 		Arguments:
 			regex (str): A standard regular expression string, or compiled \
-							regular expression
+				regular expression
 
 		Raises:
 			ValueError

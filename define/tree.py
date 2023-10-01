@@ -33,7 +33,10 @@ class Tree(Parent):
 		Parent
 	"""
 
-	def __init__(self, details: dict | str, extend: dict | TL[False] = undefined):
+	def __init__(self,
+		details: dict | str,
+		extend: dict | TL[False] = undefined
+	):
 		"""Constructor
 
 		Initialises the instance

@@ -44,7 +44,7 @@ class Array(Base):
 		Arguments:
 			details (dict): Definition
 			extend (dict | False): Optional, a dictionary to extend the \
-									definition
+				definition
 
 		Raises:
 			KeyError, ValueError
