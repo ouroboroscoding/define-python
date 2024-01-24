@@ -206,8 +206,8 @@ class Options(Base):
 		# Something went wrong
 		raise ValueError([['.'.join(level), 'matches no option']])
 
-	def get(self, index: int, default: any = None):
-		"""Get
+	def option(self, index: int, default: any = None):
+		"""Option
 
 		Returns the node of a specific index from the options
 

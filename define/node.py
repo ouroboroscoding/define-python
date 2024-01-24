@@ -149,7 +149,7 @@ class Node(Base):
 				)
 
 	@staticmethod
-	def compare_ips(first: str, second, str) -> int:
+	def compare_ips(first: str, second: str) -> int:
 		"""Compare IPs
 
 		Compares two IPs and returns a status based on which is greater

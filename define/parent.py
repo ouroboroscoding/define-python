@@ -118,6 +118,23 @@ class Parent(Base):
 		"""
 		return iter(self._nodes.keys())
 
+	def child(self, key: str, default: any = None):
+		"""Get
+
+		Returns the node of a specific key from the parent
+
+		Arguments:
+			key (str): The key to get
+			default (any): Optional, value to return if the key does not exist
+
+		Returns:
+			any
+		"""
+		try:
+			return self._nodes[key]
+		except KeyError:
+			return default
+
 	def clean(self, value: dict, level: list = undefined):
 		"""Clean
 
@@ -173,23 +190,6 @@ class Parent(Base):
 
 		# Return the cleaned values
 		return dRet
-
-	def get(self, key: str, default: any = None):
-		"""Get
-
-		Returns the node of a specific key from the parent
-
-		Arguments:
-			key (str): The key to get
-			default (any): Optional, value to return if the key does not exist
-
-		Returns:
-			any
-		"""
-		try:
-			return self._nodes[key]
-		except KeyError:
-			return default
 
 	def has_key(self, key: str):
 		"""Has Key
