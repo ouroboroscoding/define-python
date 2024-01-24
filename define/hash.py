@@ -12,30 +12,35 @@ __created__		= "2023-03-18"
 # Limit exports
 __all__ = ['Hash']
 
+# Ouroboros imports
+import undefined
+
+# Python imports
+from typing import Literal as TL
+
 # Local imports
-from .base import Base, NOT_SET
-from .node import Node
-from . import constants
+from define.base import Base
+from define.node import Node
 
 class Hash(Base):
 	"""Hash
 
-	Handles objects similar to Parents except where the keys are dynamic instead
-	of static
+	Handles objects similar to Parents except where the keys are dynamic \
+	instead of static
 
 	Extends:
 		Base
 	"""
 
-	def __init__(self, details: dict, extend: dict = NOT_SET):
+	def __init__(self, details: dict, extend: dict | TL[False] = undefined):
 		"""Constructor
 
 		Initialises the instance
 
 		Arguments:
 			details (dict): Definition
-			extend (dict | False): Optional, a dictionary to extend the
-									definition
+			extend (dict | False): Optional, a dictionary to extend the \
+				definition
 
 		Raises:
 			KeyError, ValueError
@@ -54,7 +59,7 @@ class Hash(Base):
 		# If the value is not a dict
 		if not isinstance(dDetails['__hash__'], dict):
 			dDetails['__hash__'] = {
-				'type': (dDetails['__hash__'] is True) and \
+				'__type__': (dDetails['__hash__'] is True) and \
 					'string' or \
 					dDetails['__hash__']
 			}
@@ -69,9 +74,9 @@ class Hash(Base):
 		super(Hash, self).__init__(dDetails)
 
 		# Store the child
-		self._node = Base.create(dDetails)
+		self._node = self.create(dDetails)
 
-	def child(self):
+	def child(self) -> Base:
 		"""Child
 
 		Returns the child node associated with the hash
@@ -81,10 +86,10 @@ class Hash(Base):
 		"""
 		return self._node
 
-	def clean(self, value: dict | None, level: list = NOT_SET):
+	def clean(self, value: dict | None, level: list[str] = undefined) -> any:
 		"""Clean
 
-		Makes sure both the key and value are properly stored in their correct
+		Makes sure both the key and value are properly stored in their correct \
 		representation
 
 		Arguments:
@@ -94,11 +99,11 @@ class Hash(Base):
 			ValueError
 
 		Returns:
-			any | None
+			dict | list | any | None
 		"""
 
 		# If the level is not set
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# If the value is None
@@ -137,10 +142,20 @@ class Hash(Base):
 		# Return the cleaned value
 		return dRet
 
-	def to_dict(self):
+	def key(self) -> Node:
+		"""Key
+
+		Property to return the node associated with the key
+
+		Returns:
+			Node
+		"""
+		return self._key
+
+	def to_dict(self) -> dict:
 		"""To Dict
 
-		Returns the Hash as a dictionary in the same format as is used in
+		Returns the Hash as a dictionary in the same format as is used in \
 		constructing it
 
 		Returns:
@@ -162,21 +177,27 @@ class Hash(Base):
 		# Return
 		return dRet
 
-	def valid(self, value: dict | None, level: list = NOT_SET):
+	def valid(self,
+		value: dict | None,
+		ignore_missing = False,
+		level: list[str] = undefined
+	) -> bool:
 		"""Valid
 
-		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in [instance].validation_failures as a list
+		Checks if a value is valid based on the instance's values. If any \
+		errors occur, they can be found in [instance].validation_failures as \
+		a list
 
 		Arguments:
 			value (dict | None): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
 		"""
 
 		# If the level is not set
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# Reset validation failures
@@ -185,8 +206,8 @@ class Hash(Base):
 		# If the value is None
 		if value is None:
 
-			# If it's optional, we're good
-			if self._optional:
+			# If it's optional, or we're ignoring missing values, we're good
+			if self._optional or ignore_missing:
 				return True
 
 			# Invalid value
@@ -194,7 +215,10 @@ class Hash(Base):
 
 		# If the value isn't a dictionary
 		if not isinstance(value, dict):
-			self._validation_failures.append(['.'.join(level), 'not a valid object'])
+			self._validation_failures.append([
+				'.'.join(level),
+				'not a valid object'
+			])
 			return False
 
 		# Init the return, assume valid
@@ -209,12 +233,15 @@ class Hash(Base):
 
 			# If the key isn't valid
 			if not self._key.valid(k):
-				self._validation_failures.append(['.'.join(lLevel), 'invalid key: %s' % str(k)])
+				self._validation_failures.append([
+					'.'.join(lLevel),
+					'invalid key: %s' % str(k)
+				])
 				bRet = False
 				continue
 
 			# Check the value
-			if not self._node.valid(v, lLevel):
+			if not self._node.valid(v, ignore_missing, lLevel):
 				self._validation_failures.extend(self._node.validation_failures)
 				bRet = False
 				continue
@@ -223,4 +250,4 @@ class Hash(Base):
 		return bRet
 
 # Register with Base
-Base.register('hash', Hash)
+Hash.register('hash')

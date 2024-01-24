@@ -12,14 +12,20 @@ __created__		= "2023-03-19"
 # Limit exports
 __all__ = ['Parent']
 
+# Ouroboros imports
+import undefined
+
+# Python imports
+from typing import Literal as TL
+
 # Local imports
-from .base import Base, NOT_SET
-from . import constants
+from define import constants
+from define.base import Base
 
 class Parent(Base):
 	"""Parent
 
-	Represents defined keys mapped to other Nodes which themselves could be
+	Represents defined keys mapped to other Nodes which themselves could be \
 	Parents
 
 	Extends:
@@ -55,14 +61,14 @@ class Parent(Base):
 		"""
 		return self._nodes[key]
 
-	def __init__(self, details: dict, extend: dict = NOT_SET):
+	def __init__(self, details: dict, extend: dict | TL[False] = undefined):
 		"""Constructor
 
 		Initialises the instance
 
 		Arguments:
 			details (dict): Definition
-			extend (dict | False): Optional, a dictionary to extend the
+			extend (dict | False): Optional, a dictionary to extend the \
 									definition
 
 		Raises:
@@ -96,7 +102,7 @@ class Parent(Base):
 
 				# Else, create it
 				else:
-					self._nodes[k] = Base.create(dDetails[k])
+					self._nodes[k] = self.create(dDetails[k])
 
 		# If there's a require hash available
 		if '__require__' in dDetails:
@@ -112,10 +118,27 @@ class Parent(Base):
 		"""
 		return iter(self._nodes.keys())
 
-	def clean(self, value: dict, level: list = NOT_SET):
+	def child(self, key: str, default: any = None):
+		"""Get
+
+		Returns the node of a specific key from the parent
+
+		Arguments:
+			key (str): The key to get
+			default (any): Optional, value to return if the key does not exist
+
+		Returns:
+			any
+		"""
+		try:
+			return self._nodes[key]
+		except KeyError:
+			return default
+
+	def clean(self, value: dict, level: list = undefined):
 		"""Clean
 
-		Goes through each of the values in the dict, cleans it, stores it, and
+		Goes through each of the values in the dict, cleans it, stores it, and \
 		returns a new dict
 
 		Arguments:
@@ -126,7 +149,7 @@ class Parent(Base):
 		"""
 
 		# If the level isn't passed
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# If the value is None
@@ -168,23 +191,6 @@ class Parent(Base):
 		# Return the cleaned values
 		return dRet
 
-	def get(self, key: str, default: any = None):
-		"""Get
-
-		Returns the node of a specific key from the parent
-
-		Arguments:
-			key (str): The key to get
-			default (any): Optional, value to return if the key does not exist
-
-		Returns:
-			any
-		"""
-		try:
-			return self._nodes[key]
-		except KeyError:
-			return default
-
 	def has_key(self, key: str):
 		"""Has Key
 
@@ -208,7 +214,18 @@ class Parent(Base):
 		"""
 		return tuple(self._nodes.keys())
 
-	def requires(self, require = NOT_SET):
+	@property
+	def nodes(self):
+		"""Nodes Property
+
+		Creates a read only attribute to access the instances child nodes
+
+		Returns:
+			dict
+		"""
+		return self._nodes
+
+	def requires(self, require = undefined):
 		"""Requires
 
 		Setter/Getter for the require rules used to validate the Parent
@@ -224,7 +241,7 @@ class Parent(Base):
 		"""
 
 		# If require is not passed
-		if require is NOT_SET:
+		if require is undefined:
 			return self._requires
 
 		# If it's not a valid dict
@@ -239,12 +256,16 @@ class Parent(Base):
 
 			# If the field doesn't exist
 			if k not in self._nodes:
-				raise ValueError('__require__[%s] does not exist in the Parent' % str(k))
+				raise ValueError(
+					'__require__[%s] does not exist in the Parent' % str(k)
+				)
 
 			# If the value is a string
 			if isinstance(v, str):
 				if require[k] not in self._nodes:
-					raise ValueError('__require__[%s]: %s' % (str(k), str(require[k])))
+					raise ValueError(
+						'__require__[%s]: %s' % (str(k), str(require[k]))
+					)
 				dRequire[k] = [v]
 
 			# Else, if it's a list
@@ -253,11 +274,15 @@ class Parent(Base):
 				# Make sure each required field also exists
 				for s in v:
 					if s not in self._nodes:
-						raise ValueError('__require__[%s]: %s' % (str(k), str(v)))
+						raise ValueError(
+							'__require__[%s]: %s' % (str(k), str(v))
+						)
 
 			# Else, it's invalid
 			else:
-				raise ValueError('__require__[%s] must be a single string or a list' % k)
+				raise ValueError(
+					'__require__[%s] must be a single string or a list' % k
+				)
 
 		# Set the new requires
 		self._requires = dRequire
@@ -265,7 +290,7 @@ class Parent(Base):
 	def to_dict(self):
 		"""To Dict
 
-		Returns the Parent as a dictionary in the same format as is used in
+		Returns the Parent as a dictionary in the same format as is used in \
 		constructing it
 
 		Returns:
@@ -282,14 +307,20 @@ class Parent(Base):
 		# Return
 		return dRet
 
-	def valid(self, value: dict, level: list = []):
+	def valid(self,
+		value: dict,
+		ignore_missing = False,
+		level: list = []
+	) -> bool:
 		"""Valid
 
-		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in [instance].validation_failures as a list
+		Checks if a value is valid based on the instance's values. If any \
+		errors occur, they can be found in [instance].validation_failures as a \
+		list
 
 		Arguments:
 			value (any): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
@@ -301,8 +332,8 @@ class Parent(Base):
 		# If the value is None
 		if value is None:
 
-			# If it's optional, we're good
-			if self._optional:
+			# If it's optional, or we're ignoring missing values, we're good
+			if self._optional or ignore_missing:
 				return True
 
 			# Invalid value
@@ -316,6 +347,9 @@ class Parent(Base):
 		# Init the return, assume valid
 		bRet = True
 
+		# Store the keys of the values sent
+		lKeys = list(value.keys())
+
 		# Go through each node in the instance
 		for k in self._nodes:
 
@@ -326,17 +360,24 @@ class Parent(Base):
 			# If we are missing a node
 			if k not in value:
 
-				# If the value is not optional
-				if not self._nodes[k]._optional:
-					self._validation_failures.append(['.'.join(lLevel), 'missing'])
+				# If the value is not optional and we aren't ignoring missing
+				if not self._nodes[k]._optional and not ignore_missing:
+					self._validation_failures.append(
+						['.'.join(lLevel), 'missing']
+					)
 					bRet = False
 
 				# Continue to next node
 				continue
 
+			# Remove it from the list of keys sent
+			lKeys.remove(k)
+
 			# If the element isn't valid, return false
-			if not self._nodes[k].valid(value[k], lLevel):
-				self._validation_failures.extend(self._nodes[k].validation_failures)
+			if not self._nodes[k].valid(value[k], ignore_missing, lLevel):
+				self._validation_failures.extend(
+					self._nodes[k].validation_failures
+				)
 				bRet = False
 				continue
 
@@ -348,11 +389,26 @@ class Parent(Base):
 
 					# If the field doesn't exist in the value
 					if f not in value or value[f] in ('0000-00-00','',None):
-						self._validation_failures.append(['.'.join(lLevel), 'requires \'%s\' to also be set' % str(f)])
+						self._validation_failures.append([
+							'.'.join(lLevel),
+							'requires \'%s\' to also be set' % str(f)
+						])
 						bRet = False
+
+		# If we have any extra keys
+		if lKeys:
+
+			# Set this as a failure
+			bRet = False
+
+			# Add each as an unknown
+			for s in lKeys:
+				lLevel = level[:]
+				lLevel.append(s)
+				self._validation_failures.append(['.'.join(lLevel), 'unknown'])
 
 		# Return whatever the result was
 		return bRet
 
 # Register with Base
-Base.register('parent', Parent)
+Parent.register('parent')

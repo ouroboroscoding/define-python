@@ -10,22 +10,20 @@ __email__		= "chris@ouroboroscoding.com"
 __created__		= "2023-03-18"
 
 # Limit exports
-__all__ = ['Base', 'NOT_SET']
+__all__ = ['Base']
+
+# Ouroboros imports
+import jsonb
+from tools import clone, combine
+import undefined
 
 # Python imports
 import abc
 import copy
 import sys
 
-# PIP imports
-import jsonb
-from tools import clone, combine
-
 # Local imports
-from . import constants
-
-NOT_SET = []
-"""Used as a unique constant for params not set"""
+from define import constants
 
 class Base(abc.ABC):
 	"""Base
@@ -37,7 +35,7 @@ class Base(abc.ABC):
 	"""
 
 	__classes = {}
-	"""Class """
+	"""Classes used to create new define types"""
 
 	def __init__(self, details: dict):
 		"""Constructor (__init__)
@@ -46,7 +44,6 @@ class Base(abc.ABC):
 
 		Arguments:
 			details (dict): The define structure
-			class_name (str): The name
 		"""
 
 		# If the details are not an object
@@ -72,9 +69,9 @@ class Base(abc.ABC):
 			if isinstance(details['__optional__'], bool):
 				self._optional = details['__optional__']
 
-			# Else, write a warning to stderr
+			# Else, raise an error
 			else:
-				sys.stderr.write('"%s" is not a valid value for __optional__, assuming False' % str(details['__optional__']))
+				raise ValueError('"__optional__" must be a bool')
 
 			# Remove it from details
 			del details['__optional__']
@@ -110,7 +107,6 @@ class Base(abc.ABC):
 			str(self.to_dict())
 		)
 
-	@property
 	def class_name(self):
 		"""Class Name
 
@@ -122,13 +118,13 @@ class Base(abc.ABC):
 		return self.__class
 
 	@abc.abstractmethod
-	def clean(self, value: any, level: list):
+	def clean(self, value: any, level: list[str]):
 		"""Clean
 
-		As validation allows for strings representing non-string values, it is
-		useful to be able to "clean" a value and turn it into the value it was
-		representing, making sure that data in data stores is accurate, and not
-		representitive
+		As validation allows for strings representing non-string values, it is \
+		useful to be able to "clean" a value and turn it into the value it was \
+		representing, making sure that data in data stores is accurate, and \
+		not representitive
 
 		Arguments:
 			value (any): The value to clean
@@ -153,43 +149,50 @@ class Base(abc.ABC):
 
 		# If it's an array, create a list of options
 		if isinstance(details, list):
-			return cls.__classes.options(details)
+			return cls.__classes['__options__'](details)
 
 		# Else if we got an object
 		elif isinstance(details, dict):
 
-			# If array is present
-			if '__array__' in details:
-				return cls.__classes['array'](details, False)
+			# Go through the classes that can be created
+			for name in cls.__classes:
 
-			# Else if we have a hash
-			elif '__hash__' in details:
-				return cls.__classes['hash'](details, False);
+				# Skip foundation classes
+				if name in ['__node__', '__options__', '__parent__']:
+					continue
 
-			# Else if we have a type
-			elif '__type__' in details:
+				# If the name exists in the details
+				if name in details:
+					return cls.__classes[name](details, False)
 
-				# If the type is an object or an array, this is a complex type
-				if isinstance(details['__type__'], dict) or isinstance(details['__type__'], list):
+			# Else, if we have a type
+			if '__type__' in details:
+
+				# If the __type__ is an object or an array, it's a complex type
+				if isinstance(details['__type__'], dict) or \
+					isinstance(details['__type__'], list):
+
+					# And we need to use the __type__ as the details
 					return cls.create(details['__type__'])
 
 				# Else it's just a Node
 				else:
-					return cls.__classes['node'](details, False)
+					return cls.__classes['__node__'](details, False)
 
 			# Else it's most likely a parent
 			else:
-				return cls.__classes['parent'](details, False)
+				return cls.__classes['__parent__'](details, False)
 
-		# Else if we got a string, use the value as the type
+		# Else if we got a string, use the value as the type, and create a node
 		elif isinstance(details, str):
-			return cls.__classes['node'](details, False)
+			return cls.__classes['__node__'](details, False)
 
 		# Else, raise an error
 		else:
-			raise ValueError('details in %s.%s' % (
+			raise ValueError('details in %s.%s invalid\n%s' % (
 				cls.__name__,
-				sys._getframe().f_code.co_name
+				sys._getframe().f_code.co_name,
+				str(details)
 			))
 
 	@classmethod
@@ -205,28 +208,31 @@ class Base(abc.ABC):
 			Base
 		"""
 
-		# Load the file
-		oFile = open(filename)
-
-		# Convert it to a dictionary
-		dDetails = jsonb.decodef(oFile)
+		# Load the file as a dict
+		dDetails = jsonb.load(filename)
 
 		# Create and return the new instance
 		return cls(dDetails, False)
 
 	@staticmethod
-	def make_details(details: dict, extend: dict):
+	def make_details(details: dict | str, extend: dict):
 		"""Make Details
 
 		Common function for merging the `details` with `extend`
 
 		Arguments:
-			details (dict): Definition
+			details (dict | str): Definition, or path to the file containing it
 			extend (dict): A dictionary to extend the definition of `details`
 
 		Returns:
 			dict
 		"""
+
+		# If the details are a string
+		if isinstance(details, str):
+
+			# Consider it a filepath and load the file
+			details = jsonb.load(details)
 
 		# If details is not a dict instance
 		if not isinstance(details, dict):
@@ -236,7 +242,7 @@ class Base(abc.ABC):
 		dReturn: dict = None
 
 		# If we have no extend at all
-		if extend is NOT_SET:
+		if extend is undefined:
 
 			# Make a copy of the details so we don't screw up the original
 			#	object
@@ -286,50 +292,48 @@ class Base(abc.ABC):
 			self._optional = value and True or False
 
 	@classmethod
-	def register(cls, name: dict | str, constructor: any = None):
+	def register(cls, name: str):
 		"""Register
 
-		Registers the classes that can be children because we can't require them
-		in this file as webpack can't handle file A that requires file B that
-		requires file A
+		Registers the class as a child that can be created
 
 		Arguments:
-			name (dict | str): name/value object of all classes to register, or
-								the name of the constructor that will be added
-			constructor (callable) The class to associate with the given name
+			name (str): the name of the class that will be added
 
 		Returns:
 			None
 		"""
-		if isinstance(name, dict):
-			cls.__classes = name
-		else:
-			cls.__classes[name] = constructor
 
-	def special(self, name, value=None, default=None):
+		# If someone tries to register 'type'
+		if name == 'type':
+			raise ValueError('"type" is a reserved value in define')
+
+		# Generate the name as a special field
+		s = '__%s__' % name
+
+		# If the name already exists
+		if s in cls.__classes:
+			raise ValueError('"%s" already registered' % name)
+
+		# Store the new constructor
+		cls.__classes[s] = cls
+
+	def special(self, name: str, default: any = None) -> any:
 		"""Special
 
-		Getter/Setter method for special values associated with nodes that are
-		not fields
-
-		To retrieve a value or values, pass only the name or names, to set a
-		single special value, pass a name and value
+		Get special values associated with nodes
 
 		Args:
-			name (str): The name of the value to either set or get
-			value (mixed): The value to set
-				Must be something that can be converted directly to JSON
-			default (mixed): The default value
-				Returned if the special field doesn't exist
-
-		Returns:
-			On getting, the value of the special field is returned. On setting,
-			nothing is returned
+			name (str): The name of the value to either get
+			default (any): The default value. Returned if the special field \
+				doesn't exist
 
 		Raises:
 			TypeError: If the name is not a valid string
-			ValueError: If the name is invalid, or if setting and the value can
-				not be converted to JSON
+			ValueError: If the name is invalid
+
+		Returns:
+			Returns the special value, or the default
 		"""
 
 		# Check the name is a string
@@ -338,37 +342,63 @@ class Base(abc.ABC):
 
 		# Check the name is valid
 		if not constants.special['name'].match(name):
-			raise ValueError('special name must match "%s"' % constants.special['syntax'])
+			raise ValueError(
+				'special name must match "%s"' % constants.special['syntax']
+			)
 
-		# If the value is not set, this is a getter
-		if value is None:
+		# Return the value or the default
+		try:
+			return copy.deepcopy(self.__special[name])
+		except KeyError:
+			return default
 
-			# Return the value or the default
-			try:
-				return copy.deepcopy(self._special[name])
-			except KeyError:
-				return default
+	def special_set(self, name: str, value: any) -> bool:
+		"""Special
 
-		# Else, this is a setter
-		else:
+		Traditionally we don't atlter data after instantiation, but just in
+		case it is needed, it is possible to overwrite special values
 
-			# Can the value safely be turned into JSON
-			try:
-				jsonb.encode(value)
-			except TypeError:
-				raise ValueError('"%s" can not be encoded to JSON in %s.%s' % (
-					self.__class__.__name__,
-					sys._getframe().f_code.co_name
-				))
+		Arguments:
+			name (str): The name of the value to either set
+			value (any): The value to set. Must be something that can be \
+				converted directly to JSON
 
-			# Save it
-			self.__special[name]	= value
+		Raises:
+			TypeError: If the name is not a valid string
+			ValueError: If the name is invalid, or if setting and the value \
+				can not be converted to JSON
+
+		Returns:
+			None
+		"""
+
+		# Check the name is a string
+		if not isinstance(name, str):
+			raise TypeError('name must be a string')
+
+		# Check the name is valid
+		if not constants.special['name'].match(name):
+			raise ValueError(
+				'special name must match "%s"' % constants.special['syntax']
+			)
+
+		# Can the value safely be turned into JSON
+		try:
+			jsonb.encode(value)
+		except TypeError:
+			raise ValueError('"%s" can not be encoded to JSON in %s.%s' % (
+				self.__class__.__name__,
+				sys._getframe().f_code.co_name
+			))
+
+		# Save it
+		self.__special[name] = value
 
 	def to_dict(self):
 		"""To Dict
 
-		Returns the basic node as a dictionary in the same format as is used in
-		constructing it
+		Returns the basic node as a dictionary in the same format as is used \
+		in constructing it
 
 		Returns:
 			dict
@@ -399,13 +429,18 @@ class Base(abc.ABC):
 		return jsonb.encode(self.to_dict())
 
 	@abc.abstractmethod
-	def valid(self, value, level=[]):
+	def valid(self,
+		value: any,
+		ignore_missing = False,
+		level: list[str] = undefined
+	) -> bool:
 		"""Valid
 
 		Checks if a value is valid based on the instance's values
 
 		Args:
 			value (mixed): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
@@ -413,12 +448,12 @@ class Base(abc.ABC):
 		pass
 
 	@property
-	def validation_failures(self):
+	def validation_failures(self) -> list[list[str]]:
 		"""Validation Failures
 
 		Returns the last failures as a property so they can't be overwritten
 
 		Returns:
-			list
+			[field, error][]
 		"""
 		return self._validation_failures

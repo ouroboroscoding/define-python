@@ -22,8 +22,10 @@ setup(
 	packages=['define'],
 	python_requires='>=3.10',
 	install_requires=[
+		"jobject>=1.0.2,<1.1",
 		"jsonb>=1.0.0,<1.1",
-		"tools-oc>=1.0.0,<1.1"
+		"tools-oc>=1.2.2,<1.3",
+		"undefined-oc>=1.0.0,<1.1"
 	],
 	test_suite='tests',
 	zip_safe=True

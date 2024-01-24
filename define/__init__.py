@@ -15,13 +15,11 @@ __all__ = [
 ]
 
 # Import local modules
-from . import array, base, constants, hash, node, options, parent, tree
-
-# Re-Export the classes
-Array = array.Array
-Base = base.Base
-Hash = hash.Hash
-Node = node.Node
-Options = options.Options
-Parent = parent.Parent
-Tree = tree.Tree
+from define import constants
+from define.array import Array
+from define.base import Base
+from define.hash import Hash
+from define.node import Node
+from define.options import Options
+from define.parent import Parent
+from define.tree import Tree

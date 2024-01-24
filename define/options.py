@@ -1,7 +1,7 @@
 # coding=utf8
 """Options
 
-Represents a node which can have several different types of values/Nodes and
+Represents a node which can have several different types of values/Nodes and \
 still be valid
 """
 
@@ -13,18 +13,21 @@ __created__		= "2023-03-19"
 # Limit exports
 __all__ = ['Options']
 
-# PIP imports
+# Ouroboros imports
 from tools import clone, merge
+import undefined
+
+# Python imports
+from typing import Literal as TL
 
 # Local imports
-from .base import Base, NOT_SET
-from . import constants
+from define.base import Base
 
 class Options(Base):
 	"""Options Node
 
-	Represents a node which can have several different types of values/Nodes and
-	still be valid
+	Represents a node which can have several different types of values/Nodes \
+	and still be valid
 
 	Extends:
 		_NodeInterface
@@ -46,7 +49,10 @@ class Options(Base):
 		"""
 		return self._nodes[index]
 
-	def __init__(self, details: list, extend: list = NOT_SET):
+	def __init__(self,
+		details: list,
+		extend: list[dict] | TL[False] = undefined
+	):
 		"""Constructor
 
 		Initialises the instance
@@ -70,11 +76,11 @@ class Options(Base):
 		lDetails: list = None
 
 		# If we have no extend at all
-		if extend is NOT_SET:
+		if extend is undefined:
 
 			# Make a copy of the details so we don't screw up the original
 			#	object
-			lDetails = clone(details)
+			lDetails = details[:]
 
 		# Else, we have an extend value
 		else:
@@ -130,7 +136,7 @@ class Options(Base):
 			elif isinstance(lDetails[i], (dict, list)):
 
 				# Store the child
-				self._nodes.append(Base.create(lDetails[i]))
+				self._nodes.append(self.create(lDetails[i]))
 
 			# Whatever was sent is invalid
 			else:
@@ -161,10 +167,10 @@ class Options(Base):
 		"""
 		return len(self._nodes)
 
-	def clean(self, value: any, level: list = NOT_SET):
+	def clean(self, value: any, level: list = undefined):
 		"""Clean
 
-		Uses the valid method to check which type the value is, and then calls
+		Uses the valid method to check which type the value is, and then calls \
 		the correct version of clean on that node
 
 		Arguments:
@@ -175,7 +181,7 @@ class Options(Base):
 		"""
 
 		# If level is not passed
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# If the value is None
@@ -200,8 +206,8 @@ class Options(Base):
 		# Something went wrong
 		raise ValueError([['.'.join(level), 'matches no option']])
 
-	def get(self, index: int, default: any = None):
-		"""Get
+	def option(self, index: int, default: any = None):
+		"""Option
 
 		Returns the node of a specific index from the options
 
@@ -220,7 +226,7 @@ class Options(Base):
 	def to_dict(self):
 		"""To Dict
 
-		Returns the Nodes as a list of dictionaries in the same format as is
+		Returns the Nodes as a list of dictionaries in the same format as is \
 		used in constructing them
 
 		Returns:
@@ -228,21 +234,27 @@ class Options(Base):
 		"""
 		return [d.to_dict() for d in self._nodes]
 
-	def valid(self, value: any, level: list = NOT_SET):
+	def valid(self,
+		value: any,
+		ignore_missing = False,
+		level: list = undefined
+	) -> bool:
 		"""Valid
 
-		Checks if a value is valid based on the instance's values. If any errors
-		occur, they can be found in [instance].validation_failures as a list
+		Checks if a value is valid based on the instance's values. If any \
+		errors occur, they can be found in [instance].validation_failures as a \
+		list
 
 		Arguments:
 			value (any): The value to validate
+			ignore_missing (bool): Optional, set to True to ignore missing nodes
 
 		Returns:
 			bool
 		"""
 
 		# If level isn't passed
-		if level is NOT_SET:
+		if level is undefined:
 			level = []
 
 		# Reset validation failures
@@ -251,8 +263,8 @@ class Options(Base):
 		# If the value is None
 		if value is None:
 
-			# If it's optional, we're good
-			if self._optional:
+			# If it's optional, or we're ignoring missing values, we're good
+			if self._optional or ignore_missing:
 				return True
 
 			# Invalid value
@@ -262,7 +274,7 @@ class Options(Base):
 		for i in range(len(self._nodes)):
 
 			# If it's valid
-			if self._nodes[i].valid(value):
+			if self._nodes[i].valid(value, ignore_missing):
 
 				# Return OK
 				return True
@@ -272,4 +284,4 @@ class Options(Base):
 		return False
 
 # Register with Base
-Base.register('options', Options)
+Options.register('options')
