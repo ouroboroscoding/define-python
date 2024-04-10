@@ -56,7 +56,7 @@ class Base(abc.ABC):
 		# Store the class name for the child
 		self.__class = self.__class__.__name__
 
-		# Init the list of the last falures generated in valid
+		# Init the list of the last failures generated in valid
 		self._validation_failures = None
 
 		# Init the optional flag, assume all nodes are necessary
