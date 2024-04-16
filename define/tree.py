@@ -44,7 +44,7 @@ class Tree(Parent):
 		Arguments:
 			details (dict | str): Definition or filepath to load
 			extend (dict | False): Optional, a dictionary to extend the \
-									definition
+				definition
 
 		Raises:
 			KeyError, ValueError
