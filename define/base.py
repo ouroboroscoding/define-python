@@ -21,6 +21,7 @@ import undefined
 import abc
 import copy
 import sys
+from typing import Literal as TL
 
 # Local imports
 from define import constants
@@ -196,13 +197,15 @@ class Base(abc.ABC):
 			))
 
 	@classmethod
-	def from_file(cls, filename: str):
+	def from_file(cls, filename: str, extend: dict | TL[False] = False):
 		"""From File
 
 		Loads a JSON file and creates a Node instance from it
 
 		Arguments:
-			filename (str): The filename to load
+			filename (str): The filename to load,
+			extend (dict | False): Optional, a dictionary to extend the \
+				definition
 
 		Returns:
 			Base
@@ -212,7 +215,7 @@ class Base(abc.ABC):
 		dDetails = jsonb.load(filename)
 
 		# Create and return the new instance
-		return cls(dDetails, False)
+		return cls(dDetails, extend)
 
 	@staticmethod
 	def make_details(details: dict | str, extend: dict):
