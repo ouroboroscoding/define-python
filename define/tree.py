@@ -72,7 +72,7 @@ class Tree(Parent):
 		super(Tree, self).__init__(dDetails, False)
 
 		# Store the name
-		self._name = dDetails['__name__']
+		self.__name = dDetails['__name__']
 
 		# If for some reason the array flag is set
 		if '__array__' in dDetails:
@@ -89,7 +89,7 @@ class Tree(Parent):
 		"""
 
 		# Init the dictionary we will return
-		dRet = {'__name__': self._name}
+		dRet = {'__name__': self.__name}
 
 		# Get the parents dict and add it to the return
 		dRet.update(super(Tree, self).to_dict())
@@ -111,4 +111,4 @@ class Tree(Parent):
 		Returns:
 			bool
 		"""
-		return super(Tree, self).valid(value, ignore_missing, [self._name])
+		return super(Tree, self).valid(value, ignore_missing, [ self.__name ])
