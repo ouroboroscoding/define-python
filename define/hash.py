@@ -32,7 +32,11 @@ class Hash(Base):
 		Base
 	"""
 
-	def __init__(self, details: dict, extend: dict | TL[False] = undefined):
+	def __init__(self,
+		details: dict,
+		extend: dict | TL[False] = False,
+		name: str = None
+	):
 		"""Constructor
 
 		Initialises the instance
@@ -41,6 +45,7 @@ class Hash(Base):
 			details (dict): Definition
 			extend (dict | False): Optional, a dictionary to extend the \
 				definition
+			name (str): The name of the field if it is one
 
 		Raises:
 			KeyError, ValueError
@@ -65,16 +70,16 @@ class Hash(Base):
 			}
 
 		# Store the key using the hash value
-		self._key = Node(dDetails['__hash__'])
+		self._key = Node(dDetails['__hash__'], name = '%s|key' % name)
 
 		# Remove it from details
 		del dDetails['__hash__']
 
 		# Call the parent constructor
-		super(Hash, self).__init__(dDetails)
+		super(Hash, self).__init__(dDetails, name)
 
 		# Store the child
-		self._node = self.create(dDetails)
+		self._node = self.create(dDetails, '%s|node' % name)
 
 	def child(self) -> Base:
 		"""Child
