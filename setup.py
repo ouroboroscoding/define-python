@@ -5,7 +5,7 @@ with open('README.md', 'r') as oF:
 
 setup(
 	name='define-oc',
-	version='1.0.2',
+	version='1.0.3',
 	description='A system for defining and validating data regardless of data store',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
@@ -24,7 +24,7 @@ setup(
 	install_requires=[
 		"jobject>=1.0.2,<1.1",
 		"jsonb>=1.0.0,<1.1",
-		"tools-oc>=1.2.2,<1.3",
+		"tools-oc>=1.2.4,<1.3",
 		"undefined-oc>=1.0.0,<1.1"
 	],
 	test_suite='tests',

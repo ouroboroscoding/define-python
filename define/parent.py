@@ -61,7 +61,10 @@ class Parent(Base):
 		"""
 		return self._nodes[key]
 
-	def __init__(self, details: dict, extend: dict | TL[False] = undefined):
+	def __init__(self,
+		details: dict,
+		extend: dict | TL[False] = False,
+		name: str = None):
 		"""Constructor
 
 		Initialises the instance
@@ -70,6 +73,7 @@ class Parent(Base):
 			details (dict): Definition
 			extend (dict | False): Optional, a dictionary to extend the \
 				definition
+			name (str): The name if it's a field of another Define
 
 		Raises:
 			KeyError, ValueError
@@ -82,7 +86,7 @@ class Parent(Base):
 		dDetails = Base.make_details(details, extend)
 
 		# Call the parent constructor
-		super(Parent, self).__init__(dDetails)
+		super(Parent, self).__init__(dDetails, name)
 
 		# Init the nodes and requires dicts
 		self._nodes = {}
@@ -102,7 +106,7 @@ class Parent(Base):
 
 				# Else, create it
 				else:
-					self._nodes[k] = self.create(dDetails[k])
+					self._nodes[k] = self.create(dDetails[k], k)
 
 		# If there's a require hash available
 		if '__require__' in dDetails:

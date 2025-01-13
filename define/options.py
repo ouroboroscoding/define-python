@@ -51,7 +51,8 @@ class Options(Base):
 
 	def __init__(self,
 		details: list,
-		extend: list[dict] | TL[False] = undefined
+		extend: list[dict] | TL[False] = False,
+		name: str = None
 	):
 		"""Constructor
 
@@ -60,6 +61,7 @@ class Options(Base):
 		Arguments:
 			details (list): Definition
 			extend (list | False): Optional, a list to extend the definition
+			name (str): The name of the field if it is one
 
 		Raises:
 			KeyError, ValueError
@@ -76,7 +78,7 @@ class Options(Base):
 		lDetails: list = None
 
 		# If we have no extend at all
-		if extend is undefined:
+		if extend is False:
 
 			# Make a copy of the details so we don't screw up the original
 			#	object
@@ -119,7 +121,7 @@ class Options(Base):
 				raise ValueError('extend must be a list or False')
 
 		# Call the Base constructor
-		super(Options, self).__init__({})
+		super(Options, self).__init__({}, name)
 
 		# Init the internal list
 		self._nodes = []
@@ -136,7 +138,9 @@ class Options(Base):
 			elif isinstance(lDetails[i], (dict, list)):
 
 				# Store the child
-				self._nodes.append(self.create(lDetails[i]))
+				self._nodes.append(
+					self.create(lDetails[i], '%s|%i' % (name, i))
+				)
 
 			# Whatever was sent is invalid
 			else:

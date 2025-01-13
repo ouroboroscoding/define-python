@@ -22,7 +22,7 @@ from datetime import date, datetime, time
 from decimal import Decimal, InvalidOperation as DecimalInvalid
 import hashlib
 import re
-from typing import Literal as TL
+from typing import Literal as TL, Pattern
 
 # Local imports
 from define import constants
@@ -51,7 +51,8 @@ class Node(Base):
 
 	def __init__(self,
 		details: dict | str,
-		extend: dict | TL[False] = undefined
+		extend: dict | TL[False] = False,
+		name: str = None
 	):
 		"""Constructor
 
@@ -61,6 +62,7 @@ class Node(Base):
 			details (dict | str): Definition, or type string
 			extend (dict | False): Optional, a dictionary to extend the \
 				definition
+			name (str): The name of the field if it is one
 
 		Raises:
 			KeyError, ValueError
@@ -85,7 +87,7 @@ class Node(Base):
 			else:
 
 				# If it's a dictionary
-				if isinstance(details, dict):
+				if isinstance(extend, dict):
 
 					# Store the details by making a new dict from the details
 					#	and the extend
@@ -116,7 +118,7 @@ class Node(Base):
 			raise KeyError('__type__ (%s) invalid' % dDetails['__type__'])
 
 		# Call the parent constructor
-		super(Node, self).__init__(dDetails)
+		super(Node, self).__init__(dDetails, name)
 
 		# Store the type
 		self._type = dDetails['__type__']
@@ -715,7 +717,7 @@ class Node(Base):
 		# Store the list of options
 		self._options = lOpts
 
-	def regex(self, regex: str | _REGEX_TYPE = undefined):
+	def regex(self, regex: str | Pattern = undefined):
 		"""Regex
 
 		Sets or gets the regular expression used to validate the Node

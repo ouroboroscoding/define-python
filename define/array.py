@@ -36,7 +36,10 @@ class Array(Base):
 
 	Holds a list of valid values used to represent arrays types"""
 
-	def __init__(self, details: dict, extend: dict | TL[False] = undefined):
+	def __init__(self,
+		details: dict,
+		extend: dict | TL[False] = False,
+		name: str = None):
 		"""Constructor
 
 		Initialises the instance
@@ -45,6 +48,7 @@ class Array(Base):
 			details (dict): Definition
 			extend (dict | False): Optional, a dictionary to extend the \
 				definition
+			name (str): The name of the field if it is one
 
 		Raises:
 			KeyError, ValueError
@@ -80,7 +84,7 @@ class Array(Base):
 			self._type = dDetails['__array__']['type']
 
 		# Call the Base constructor
-		super(Array, self).__init__(dDetails)
+		super(Array, self).__init__(dDetails, name)
 
 		# Init the min/max values
 		self._minimum = None
@@ -100,7 +104,7 @@ class Array(Base):
 		del dDetails['__array__']
 
 		# Create the child node
-		self._node = self.create(dDetails)
+		self._node = self.create(dDetails, '%s|node' % name)
 
 	def child(self) -> Base:
 		"""Child

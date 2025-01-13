@@ -38,13 +38,17 @@ class Base(abc.ABC):
 	__classes = {}
 	"""Classes used to create new define types"""
 
-	def __init__(self, details: dict):
+	__name = None
+	"""The name if it's a field of another Define structure"""
+
+	def __init__(self, details: dict, name: str = None):
 		"""Constructor (__init__)
 
 		Creates a new instance
 
 		Arguments:
 			details (dict): The define structure
+			name (str): The name of the field if it is one
 		"""
 
 		# If the details are not an object
@@ -56,6 +60,9 @@ class Base(abc.ABC):
 
 		# Store the class name for the child
 		self.__class = self.__class__.__name__
+
+		# Store the structure name
+		self.__name = name
 
 		# Init the list of the last failures generated in valid
 		self._validation_failures = None
@@ -136,13 +143,14 @@ class Base(abc.ABC):
 		pass
 
 	@classmethod
-	def create(cls, details: dict):
+	def create(cls, details: dict, name: str = None):
 		"""Create
 
 		Figure out the child node type necessary and create an instance of it
 
 		Arguments:
 			details (dict): An object describing a data point
+			name (str): The name if it's a field of another Define
 
 		Returns:
 			any
@@ -150,7 +158,7 @@ class Base(abc.ABC):
 
 		# If it's an array, create a list of options
 		if isinstance(details, list):
-			return cls.__classes['__options__'](details)
+			return cls.__classes['__options__'](details, name = name)
 
 		# Else if we got an object
 		elif isinstance(details, dict):
@@ -164,7 +172,7 @@ class Base(abc.ABC):
 
 				# If the name exists in the details
 				if name in details:
-					return cls.__classes[name](details, False)
+					return cls.__classes[name](details, False, name)
 
 			# Else, if we have a type
 			if '__type__' in details:
@@ -174,19 +182,19 @@ class Base(abc.ABC):
 					isinstance(details['__type__'], list):
 
 					# And we need to use the __type__ as the details
-					return cls.create(details['__type__'])
+					return cls.create(details['__type__'], name)
 
 				# Else it's just a Node
 				else:
-					return cls.__classes['__node__'](details, False)
+					return cls.__classes['__node__'](details, False, name)
 
 			# Else it's most likely a parent
 			else:
-				return cls.__classes['__parent__'](details, False)
+				return cls.__classes['__parent__'](details, False, name)
 
 		# Else if we got a string, use the value as the type, and create a node
 		elif isinstance(details, str):
-			return cls.__classes['__node__'](details, False)
+			return cls.__classes['__node__'](details, False, name)
 
 		# Else, raise an error
 		else:
@@ -273,6 +281,16 @@ class Base(abc.ABC):
 
 		# Return whatever details were generated
 		return dReturn
+
+	def name(self) -> None | str:
+		"""Name
+
+		Returns the name of the field if it is one
+
+		Returns:
+			str | None
+		"""
+		return self.__name
 
 	def optional(self, value: bool | None = None):
 		"""Optional
