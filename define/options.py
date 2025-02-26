@@ -126,6 +126,9 @@ class Options(Base):
 		# Init the internal list
 		self._nodes = []
 
+		# Assume optional, we'll change it based on the children
+		self._optional = True
+
 		# Go through each element in the list
 		for i in range(len(lDetails)):
 

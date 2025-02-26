@@ -1,8 +1,9 @@
 # Define
+[![pypi version](https://img.shields.io/pypi/v/define-oc.svg)](https://pypi.org/project/define-oc) ![MIT License](https://img.shields.io/pypi/l/define-oc.svg)
 
-[![PyPI - Python Version](https://img.shields.io/pypi/v/define-oc.svg)](https://pypi.org/project/define-oc/) ![MIT License](https://img.shields.io/npm/l/@ouroboros/define.svg)
-
-Define uses JSON as a language independant way to describe data types that can then be validated, and in the case of all strings form data, cleaned up and turned into the appropriate variable type.
+Define uses JSON as a language independant way to describe data types that can
+then be validated, and in the case of all strings form data, cleaned up and
+turned into the appropriate variable type.
 
 ## Install
 ```bash
@@ -10,7 +11,10 @@ pip install define-oc
 ```
 
 ## Using
-Defining data can be done at runtime with dicts and lists, but one of the advantages of creating definition files in JSON is being able to share them with your front end systems to allow validating data with the same rules in the browser or app before even sending it to the server.
+Defining data can be done at runtime with dicts and lists, but one of the
+advantages of creating definition files in JSON is being able to share them with
+your front end systems to allow validating data with the same rules in the
+browser or app before even sending it to the server.
 
 user.json
 ```json
@@ -117,9 +121,14 @@ data = tree.clean(data)
 ```
 
 ## Extending
-Any fields marked by two leading and trailing underscores is considered a special value and can be accessed using the `special` method. This can be used to add details only relevent to a specific system, either directly, or through the use of classes that inherit the Define classes.
+Any fields marked by two leading and trailing underscores is considered a
+special value and can be accessed using the `special` method. This can be used
+to add details only relevent to a specific system, either directly, or through
+the use of classes that inherit the Define classes.
 
-For example, a class that handles storing the data in a database might need extra data to know how to convert the Define type to an equivalent database type, or to limit that type.
+For example, a class that handles storing the data in a database might need
+extra data to know how to convert the Define type to an equivalent database
+type, or to limit that type.
 
 user.json
 ```json
@@ -147,7 +156,8 @@ user.json
 }
 ```
 
-Or, if we don't want this data in the shared file, we can add it at runtime and let the class merge the two.
+Or, if we don't want this data in the shared file, we can add it at runtime and
+let the class merge the two.
 
 user.py
 ```python
@@ -176,4 +186,6 @@ name_first_type = parent['name']['first'].special('sql_type')
 ```
 
 ## Documentation
-Full documentation, including information on using Arrays and dynamic Objects, as well as how to handle errors, can be found on [ouroboroscoding.com/define](https://ouroboroscoding.com/define)
+Full documentation, including information on using Arrays and dynamic Objects,
+as well as how to handle errors, can be found on
+[ouroboroscoding.com/define](https://ouroboroscoding.com/define)
