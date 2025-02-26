@@ -78,6 +78,17 @@ class Tree(Parent):
 		if '__array__' in dDetails:
 			raise KeyError('__array__')
 
+	@property
+	def name(self) -> str:
+		"""Name
+
+		Creates a read-only property to get the name
+
+		Returns:
+			str
+		"""
+		return self.__name
+
 	def to_dict(self):
 		"""To Dict
 
