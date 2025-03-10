@@ -44,7 +44,8 @@ class Node(Base):
 
 	_VALID_TYPES = ['any', 'base64', 'bool', 'date', 'datetime', 'decimal',
 					'float', 'int', 'ip', 'json', 'md5', 'price', 'string',
-					'time', 'timestamp', 'uint', 'uuid', 'uuid4']
+					'time', 'timestamp', 'tuuid', 'tuuid4', 'uint', 'uuid',
+					'uuid4']
 	"""Valid Types
 
 	Holds a list of valid values used to represent Node types"""
@@ -213,7 +214,9 @@ class Node(Base):
 			pass
 
 		# Else if it's a basic string type
-		elif self._type in ['base64', 'ip', 'string', 'uuid', 'uuid4']:
+		elif self._type in [
+			'base64', 'ip', 'string', 'tuuid', 'tuuid4', 'uuid', 'uuid4'
+		]:
 
 			# And not already a string
 			if not isinstance(value, str):
@@ -590,7 +593,8 @@ class Node(Base):
 		# If the type is not one that can have options
 		if self._type not in ['base64', 'date', 'datetime', 'decimal', 'float',
 								'int', 'ip', 'md5', 'price', 'string', 'time',
-								'timestamp', 'uint', 'uuid', 'uuid4']:
+								'timestamp', 'tuuid', 'tuuid4', 'uint', 'uuid',
+								'uuid4']:
 			raise TypeError(
 				'can not set __options__ for "%s" type' % self._type
 			)
@@ -604,7 +608,7 @@ class Node(Base):
 			# Convert the value based on the type
 			# If the type is a string one that we can validate
 			if self._type in ['base64', 'date', 'datetime', 'ip', 'md5', 'time',
-								'uuid', 'uuid4']:
+								'tuuid', 'tuuid4', 'uuid', 'uuid4']:
 
 				# If the value is not a string or doesn't match its regex, raise
 				# 	an error
@@ -846,7 +850,7 @@ class Node(Base):
 
 		# If we are validating a DATE, DATETIME, IP or TIME data point
 		elif self._type in ['base64', 'date', 'datetime', 'ip', 'md5', 'time',
-							'uuid', 'uuid4']:
+							'tuuid', 'tuuid4', 'uuid', 'uuid4']:
 
 			# If it's a date or datetime type and the value is a python type
 			if self._type == 'date' and isinstance(value, (date, datetime)):

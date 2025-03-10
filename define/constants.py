@@ -22,8 +22,8 @@ _special_syntax = r'[a-z0-9_-]+'
 array = ['unique', 'duplicates']
 nodes = [
 	'any', 'base64', 'bool', 'date', 'datetime', 'decimal', 'float', 'int',
-	'ip', 'json', 'md5', 'price', 'string', 'time', 'timestamp', 'uint',
-	'uuid', 'uuid4'
+	'ip', 'json', 'md5', 'price', 'string', 'time', 'timestamp', 'tuuid',
+	'tuuid4', 'uint', 'uuid', 'uuid4'
 ]
 special = jobject({
 	'syntax': _special_syntax,
@@ -45,6 +45,8 @@ regex = jobject({
 	'md5':		_re.compile('^[a-fA-F0-9]{32}$'),
 	'price':	_re.compile('^-?(?:[1-9]\d+|\d)(?:\.\d{1,2})?$'),
 	'time':		_re.compile('^(?:[01]\d|2[0-3])(?::[0-5]\d){2}$'),
+	'tuuid':	_re.compile('^[a-f0-9]{8}[a-f0-9]{4}[a-f0-9]{4}[a-f0-9]{4}[a-f0-9]{12}$'),
+	'tuuid4':	_re.compile('^[a-f0-9]{8}[a-f0-9]{4}4[a-f0-9]{3}[89aAbB][a-f0-9]{3}[a-f0-9]{12}$'),
 	'uuid':		_re.compile('^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'),
 	'uuid4':	_re.compile('^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}$')
 })
