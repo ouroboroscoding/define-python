@@ -365,6 +365,15 @@ class define_Test(unittest.TestCase):
 		self.assertTrue(oNode.clean(3) == 3, '3 does not equal 3')
 		self.assertTrue(oNode.clean('3') == 3, '"3" does not equal 3')
 
+		# Create a basic tuuid Node
+		oNode	= define.Node({
+			"__type__":	"tuuid"
+		})
+
+		self.assertTrue(oNode.clean('52cd4b20ca32443395160c8684ec57c2') == '52cd4b20ca32443395160c8684ec57c2', '"52cd4b20ca32443395160c8684ec57c2" does not equal "52cd4b20ca32443395160c8684ec57c2"')
+		self.assertTrue(oNode.clean('3b44c5ed0fea44789f1b939ae6ec0721') == '3b44c5ed0fea44789f1b939ae6ec0721', '"3b44c5ed0fea44789f1b939ae6ec0721" does not equal "3b44c5ed0fea44789f1b939ae6ec0721"')
+		self.assertTrue(oNode.clean('6432b16a7e2747cd836082d82ac70078') == '6432b16a7e2747cd836082d82ac70078', '"6432b16a7e2747cd836082d82ac70078" does not equal "6432b16a7e2747cd836082d82ac70078"')
+
 		# Create a basic uint Node
 		oNode	= define.Node({
 			"__type__":	"uint"
@@ -385,7 +394,6 @@ class define_Test(unittest.TestCase):
 		self.assertTrue(oNode.clean('52cd4b20-ca32-4433-9516-0c8684ec57c2') == '52cd4b20-ca32-4433-9516-0c8684ec57c2', '"52cd4b20-ca32-4433-9516-0c8684ec57c2" does not equal "52cd4b20-ca32-4433-9516-0c8684ec57c2"')
 		self.assertTrue(oNode.clean('3b44c5ed-0fea-4478-9f1b-939ae6ec0721') == '3b44c5ed-0fea-4478-9f1b-939ae6ec0721', '"3b44c5ed-0fea-4478-9f1b-939ae6ec0721" does not equal "3b44c5ed-0fea-4478-9f1b-939ae6ec0721"')
 		self.assertTrue(oNode.clean('6432b16a-7e27-47cd-8360-82d82ac70078') == '6432b16a-7e27-47cd-8360-82d82ac70078', '"6432b16a-7e27-47cd-8360-82d82ac70078" does not equal "6432b16a-7e27-47cd-8360-82d82ac70078"')
-
 
 	def test_Node_Valid_Basic(self):
 
@@ -783,6 +791,29 @@ class define_Test(unittest.TestCase):
 		self.assertFalse(oNode.valid(-1), '-1 is a valid timestamp')
 		self.assertFalse(oNode.valid('-1'), '"-1" is a valid timestamp')
 
+		# Create a new basic tuuid Node module
+		oNode	 = define.Node({
+			'__type__':	'tuuid'
+		})
+
+		# Check for True
+		self.assertTrue(oNode.valid('52cd4b20ca32443395160c8684ec57c2'), '"52cd4b20ca32443395160c8684ec57c2" is not a valid tuuid')
+		self.assertTrue(oNode.valid('3b44c5ed0fea44789f1b939ae6ec0721'), '"3b44c5ed0fea44789f1b939ae6ec0721" is not a valid tuuid')
+		self.assertTrue(oNode.valid('6432b16a7e2747cd836082d82ac70078'), '"6432b16a7e2747cd836082d82ac70078" is not a valid tuuid')
+
+		# Check for False
+		self.assertFalse(oNode.valid('Hello'), '"Hello" is a valid tuuid')
+		self.assertFalse(oNode.valid(True), '"Hello" is a valid tuuid')
+		self.assertFalse(oNode.valid(0), '0 is a valid tuuid')
+		self.assertFalse(oNode.valid(0.1), '0.1 is a valid tuuid')
+		self.assertFalse(oNode.valid('192.168.0.1'), '"192.168.0.1" is a valid tuuid')
+		self.assertFalse(oNode.valid('2016-03-05'), '"2016-03-05" is a valid tuuid')
+		self.assertFalse(oNode.valid('13:50:00'), '"13:50:00" is a valid tuuid')
+		self.assertFalse(oNode.valid('2016-03-05 13:50:00'), '"2016-03-05 13:50:00" is a valid tuuid')
+		self.assertFalse(oNode.valid('52cd4b20-ca32-4433-9516-0c8684ec57c2'), '"52cd4b20-ca32-4433-9516-0c8684ec57c2" is a valid tuuid')
+		self.assertFalse(oNode.valid([]), '[] is a valid tuuid')
+		self.assertFalse(oNode.valid({}), '{} is a valid tuuid')
+
 		# Create a new basic unsigned int Node module
 		oNode	 = define.Node({
 			'__type__':	'uint'
@@ -815,6 +846,7 @@ class define_Test(unittest.TestCase):
 		self.assertFalse(oNode.valid('2016-03-05'), '"2016-03-05" is a valid uuid')
 		self.assertFalse(oNode.valid('13:50:00'), '"13:50:00" is a valid uuid')
 		self.assertFalse(oNode.valid('2016-03-05 13:50:00'), '"2016-03-05 13:50:00" is a valid uuid')
+		self.assertFalse(oNode.valid('52cd4b20ca32443395160c8684ec57c2'), '"52cd4b20ca32443395160c8684ec57c2" is a valid uuid')
 		self.assertFalse(oNode.valid([]), '[] is a valid uuid')
 		self.assertFalse(oNode.valid({}), '{} is a valid uuid')
 
